@@ -11,12 +11,13 @@ import com.example.springboot.common.Constants;
 import com.example.springboot.common.Result;
 import com.example.springboot.controller.dto.UserDTO;
 import com.example.springboot.entity.User;
+import com.example.springboot.entity.UserProfile;
+import com.example.springboot.entity.UserMatch;
 import com.example.springboot.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -32,7 +33,7 @@ import java.util.List;
  */
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/users")
 public class UserController {
 
     @Value("${files.upload.path}")
@@ -40,7 +41,6 @@ public class UserController {
 
     @Autowired
     private IUserService userService;
-
 
     //登录界面
     @PostMapping("/login")
@@ -75,17 +75,11 @@ public class UserController {
         return Result.success(userService.saveOrUpdate(user));
     }
 
-
     // 查询所有数据
     @GetMapping
     public Result findAll() {
         return Result.success(userService.list());
     }
-
-//    @GetMapping
-//    public List<User> findAll() {
-//        return userService.list();
-//    }
 
     @GetMapping("/role/{role}")
     public Result findUsersByRole(@PathVariable String role) {
@@ -135,7 +129,6 @@ public class UserController {
         return userService.page(page, queryWrapper);
     }
 
-
     //导出接口
     @GetMapping("/export")
     public void export(HttpServletResponse response) throws IOException {
@@ -175,12 +168,48 @@ public class UserController {
         reader.addHeaderAlias("电话", "phone");
         reader.addHeaderAlias("地址", "address");
         List<User> list = reader.readAll(User.class);
-//        PlatformLogger log = null;
-//        log.info(list.toString());
         userService.saveBatch(list);//插入数据
         return Result.success(true);
     }
 
+    // 模拟获取当前登录用户ID的方法，后续需要替换为实际的认证逻辑
+    private Integer getCurrentUserId() {
+        // 这里应该是从 token 或 session 获取用户 ID
+        // 暂时返回一个模拟 ID，例如 1
+        // TODO: 实现真实的用户认证逻辑
+        System.out.println("警告: 正在使用模拟用户ID！");
+        // 注意：User 表 和 UserProfile 表需要关联，这里返回的 ID 应该是 UserProfile 表的 ID 或能够查到 UserProfile 的 User 表 ID。
+        // 假设 User 表的 ID 和 UserProfile 表的 ID 是一致的或者可以关联查询
+        return 1; 
+    }
+    
+    /**
+     * 获取推荐用户列表
+     * @param latitude 当前用户纬度
+     * @param longitude 当前用户经度
+     * @return 推荐用户列表
+     */
+    @GetMapping("/recommend")
+    public Result recommendUsers(
+            @RequestParam(required = false) Double latitude, // 设置为非必须，以便处理前端未提供位置的情况
+            @RequestParam(required = false) Double longitude) {
+        
+        Integer currentUserId = getCurrentUserId();
+        // 检查 userService 是否有 getRecommendations 方法，如果没有，需要添加
+        List<UserProfile> recommendations = userService.getRecommendations(currentUserId, latitude, longitude);
+        return Result.success(recommendations);
+    }
+
+    /**
+     * 获取当前用户的匹配列表
+     * @return 匹配列表
+     */
+    @GetMapping("/matches")
+    public Result getMatches() {
+        Integer currentUserId = getCurrentUserId();
+        List<UserMatch> matches = userService.getMatches(currentUserId);
+        return Result.success(matches);
+    }
 
 }
 

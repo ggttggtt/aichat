@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.UserProfileMapper">
+
+    <resultMap id="UserProfileResultMap" type="com.example.springboot.entity.UserProfile">
+        <id property="id" column="id"/>
+        <result property="openId" column="open_id"/>
+        <result property="nickname" column="nickname"/>
+        <result property="gender" column="gender"/>
+        <result property="birthdate" column="birthdate"/>
+        <result property="location" column="location"/>
+        <result property="bio" column="bio"/>
+        <result property="avatarUrl" column="avatar_url"/>
+        <result property="latitude" column="latitude"/>
+        <result property="longitude" column="longitude"/>
+        <result property="registerTime" column="register_time"/>
+        <result property="lastActiveTime" column="last_active_time"/>
+        <result property="isProfileCompleted" column="is_profile_completed"/>
+    </resultMap>
+
+    <select id="getById" resultMap="UserProfileResultMap">
+        SELECT *
+        FROM user_profile
+        WHERE id = #{id}
+    </select>
+
+    <select id="getByOpenId" resultMap="UserProfileResultMap">
+        SELECT *
+        FROM user_profile
+        WHERE open_id = #{openId}
+    </select>
+
+    <insert id="insert" parameterType="com.example.springboot.entity.UserProfile" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_profile (open_id, nickname, gender, birthdate, location, bio, avatar_url, latitude, longitude, is_profile_completed)
+        VALUES (#{openId}, #{nickname}, #{gender}, #{birthdate}, #{location}, #{bio}, #{avatarUrl}, #{latitude}, #{longitude}, #{isProfileCompleted})
+    </insert>
+
+    <update id="update" parameterType="com.example.springboot.entity.UserProfile">
+        UPDATE user_profile
+        <set>
+            <if test="openId != null">open_id = #{openId},</if>
+            <if test="nickname != null">nickname = #{nickname},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="birthdate != null">birthdate = #{birthdate},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="bio != null">bio = #{bio},</if>
+            <if test="avatarUrl != null">avatar_url = #{avatarUrl},</if>
+            <if test="latitude != null">latitude = #{latitude},</if>
+            <if test="longitude != null">longitude = #{longitude},</if>
+            <if test="lastActiveTime != null">last_active_time = #{lastActiveTime},</if>
+            <if test="isProfileCompleted != null">is_profile_completed = #{isProfileCompleted},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateLastActiveTime">
+        UPDATE user_profile
+        SET last_active_time = NOW()
+        WHERE id = #{userId}
+    </update>
+
+    <!-- 
+        获取推荐用户列表 SQL 
+        TODO: 优化推荐逻辑，例如:
+        1. 排除已喜欢/不喜欢的用户 (需要连接 user_like 表)
+        2. 排除已匹配的用户 (需要连接 user_match 表)
+        3. 根据标签匹配度排序
+        4. 考虑活跃度排序 (last_active_time)
+        5. 处理 latitude/longitude 为 null 的情况
+    -->
+    <select id="getRecommendProfiles" resultMap="UserProfileResultMap">
+        SELECT
+            up.*,
+            <!-- Haversine 公式计算距离 (如果提供了经纬度) -->
+            <if test="latitude != null and longitude != null">
+              ( 6371 * acos( cos( radians(#{latitude}) )
+                             * cos( radians( up.latitude ) )
+                             * cos( radians( up.longitude ) - radians(#{longitude}) )
+                             + sin( radians(#{latitude}) )
+                             * sin( radians( up.latitude ) ) ) ) AS distance_calculated
+            </if>
+            <if test="latitude == null or longitude == null">
+              NULL AS distance_calculated
+            </if>
+        FROM
+            user_profile up
+        WHERE
+            up.id != #{userId}  -- 排除自己
+            AND up.is_profile_completed = 1 -- 只推荐已完善资料的用户
+            <if test="gender != null and gender != ''">
+                AND up.gender = #{gender} -- 筛选性别
+            </if>
+            <!-- TODO: 添加排除已交互用户的逻辑 -->
+            <!-- AND up.id NOT IN (SELECT liked_user_id FROM user_like WHERE user_id = #{userId}) -->
+            <!-- AND up.id NOT IN (SELECT user_id1 FROM user_match WHERE user_id2 = #{userId}) -->
+            <!-- AND up.id NOT IN (SELECT user_id2 FROM user_match WHERE user_id1 = #{userId}) -->
+        <if test="latitude != null and longitude != null">
+            <!-- 如果提供了经纬度，按距离排序 -->
+             AND up.latitude IS NOT NULL AND up.longitude IS NOT NULL -- 确保推荐用户也有经纬度
+             ORDER BY distance_calculated ASC
+        </if>
+        <if test="latitude == null or longitude == null">
+             <!-- 否则按最后活跃时间降序排序 -->
+             ORDER BY up.last_active_time DESC
+        </if>
+        LIMIT #{limit}
+    </select>
+
+</mapper> 
