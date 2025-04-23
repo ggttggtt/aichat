@@ -200,14 +200,6 @@
             <version>1.2.62</version>
         </dependency>
 
-
-        <!--  pptx——>pdf -->
-        <dependency>
-            <groupId>com.groupdocs</groupId>
-            <artifactId>groupdocs-conversion</artifactId>
-            <version>22.11</version>
-        </dependency>
-
         <!-- convertapi -->
         <dependency>
             <groupId>com.convertapi.client</groupId>
