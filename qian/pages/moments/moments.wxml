@@ -1,0 +1,146 @@
+<view class="moments-container">
+  <view class="header">
+    <text class="title">动态广场</text>
+  </view>
+
+  <!-- 动态列表 -->
+  <view class="moments-list">
+    <view class="moment-item" wx:for="{{moments}}" wx:key="id">
+      <!-- 用户信息 -->
+      <view class="user-info" bindtap="viewUserDetail" data-id="{{item.userId}}">
+        <image src="{{item.userAvatar}}" class="avatar"></image>
+        <view class="user-name-time">
+          <text class="user-name">{{item.userName}}</text>
+          <text class="post-time">{{item.createTime}}</text>
+        </view>
+      </view>
+
+      <!-- 动态内容 -->
+      <view class="moment-content" bindtap="viewMomentDetail" data-id="{{item.id}}">
+        <text class="content-text">{{item.content}}</text>
+        
+        <!-- 图片区域 -->
+        <view class="image-container" wx:if="{{item.images.length > 0}}">
+          <block wx:if="{{item.images.length === 1}}">
+            <image 
+              src="{{item.images[0]}}" 
+              mode="aspectFill" 
+              class="single-image"
+              bindtap="previewImage"
+              data-urls="{{item.images}}"
+              data-current="{{item.images[0]}}"
+              catchtap="previewImage"></image>
+          </block>
+          <view class="image-grid" wx:else>
+            <image 
+              wx:for="{{item.images}}" 
+              wx:for-item="img" 
+              wx:key="index"
+              src="{{img}}" 
+              mode="aspectFill" 
+              class="grid-image"
+              bindtap="previewImage"
+              data-urls="{{item.images}}"
+              data-current="{{img}}"
+              catchtap="previewImage"></image>
+          </view>
+        </view>
+        
+        <!-- 位置信息 -->
+        <view class="location" wx:if="{{item.location}}">
+          <image src="/images/location.png" class="location-icon"></image>
+          <text>{{item.location}}</text>
+        </view>
+      </view>
+
+      <!-- 操作区 -->
+      <view class="action-bar">
+        <view class="action-item {{item.isLiked ? 'active' : ''}}" bindtap="likeMoment" data-id="{{item.id}}">
+          <image src="{{item.isLiked ? '/images/like_active.png' : '/images/like.png'}}" class="action-icon"></image>
+          <text>{{item.likeCount || 0}}</text>
+        </view>
+        <view class="action-item" bindtap="showCommentInput" data-id="{{item.id}}">
+          <image src="/images/comment.png" class="action-icon"></image>
+          <text>{{item.commentCount || 0}}</text>
+        </view>
+      </view>
+      
+      <!-- 评论区 -->
+      <view class="comment-area" wx:if="{{item.comments && item.comments.length > 0}}">
+        <view class="comment-item" wx:for="{{item.comments}}" wx:for-item="comment" wx:key="id">
+          <view class="comment-user-info">
+            <image src="{{comment.avatar || '/images/default_avatar.png'}}" class="comment-avatar"></image>
+            <view class="comment-right">
+              <view class="comment-name-content">
+                <text class="comment-name">{{comment.nickname}}</text>
+                <block wx:if="{{comment.replyUserName}}">
+                  <text class="reply-to">回复</text>
+                  <text class="reply-name">{{comment.replyUserName}}</text>
+                </block>
+                <text class="comment-content">{{comment.content}}</text>
+              </view>
+              <view class="comment-time">{{comment.createTime}}</view>
+            </view>
+          </view>
+        </view>
+        
+        <view class="view-more" wx:if="{{item.commentCount > 3}}" bindtap="viewMomentDetail" data-id="{{item.id}}">
+          查看全部{{item.commentCount}}条评论
+        </view>
+      </view>
+      
+      <!-- 点赞评论区域 -->
+      <view class="interaction-bar">
+        <view class="like-comment-count">
+          <view class="count-item">
+            <text>点赞 {{item.likeCount}}</text>
+          </view>
+          <view class="count-item">
+            <text>评论 {{item.commentCount}}</text>
+          </view>
+        </view>
+        <view class="action-buttons">
+          <view class="action-button {{item.isLiked ? 'liked' : ''}}" bindtap="likeMoment" data-id="{{item.id}}">
+            <image src="/images/{{item.isLiked ? 'like_filled' : 'like'}}.png" class="action-icon"></image>
+            <text>点赞</text>
+          </view>
+          <view class="action-button" bindtap="showCommentInput" data-id="{{item.id}}">
+            <image src="/images/comment.png" class="action-icon"></image>
+            <text>评论</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 评论区域 -->
+      <view class="comments-section" wx:if="{{item.comments.length > 0}}">
+        <view 
+          class="comment-item" 
+          wx:for="{{item.comments}}" 
+          wx:for-item="comment" 
+          wx:key="id">
+          <text class="comment-user">{{comment.userName}}：</text>
+          <text class="comment-content">{{comment.content}}</text>
+        </view>
+        
+        <view class="view-more-comments" wx:if="{{item.commentCount > item.comments.length}}" bindtap="viewMomentDetail" data-id="{{item.id}}">
+          查看全部{{item.commentCount}}条评论
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载中提示 -->
+  <view class="loading" wx:if="{{loading && moments.length > 0}}">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 没有更多数据提示 -->
+  <view class="no-more" wx:if="{{!hasMore && moments.length > 0}}">
+    <text>没有更多了</text>
+  </view>
+
+  <!-- 发布动态按钮 -->
+  <view class="publish-button" bindtap="publishMoment">
+    <image src="/images/publish.png" class="publish-icon"></image>
+  </view>
+</view> 

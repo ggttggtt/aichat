@@ -1,0 +1,128 @@
+<view class="profile-container">
+  <view class="header">
+    <text class="title" wx:if="{{isSetup}}">完善个人资料</text>
+    <text class="title" wx:else>我的资料</text>
+    <view class="edit-btn" bindtap="toggleEdit" wx:if="{{!isSetup && !isEditing}}">编辑</view>
+  </view>
+  
+  <!-- 照片上传区域 -->
+  <view class="photo-section">
+    <view class="section-title">我的照片</view>
+    <view class="photo-tip">上传清晰真实的照片，让大家更好地了解你（第一张将作为头像）</view>
+    
+    <view class="photo-grid">
+      <!-- 已上传照片 -->
+      <view class="photo-item" wx:for="{{form.photos}}" wx:key="index">
+        <image src="{{item}}" mode="aspectFill" class="photo"></image>
+        <view class="delete-icon" bindtap="deleteImage" data-index="{{index}}" wx:if="{{isEditing}}">×</view>
+      </view>
+      
+      <!-- 添加照片按钮 -->
+      <view class="photo-add" bindtap="chooseImage" wx:if="{{isEditing && form.photos.length < 6}}">
+        <view class="add-icon">+</view>
+      </view>
+    </view>
+    
+    <!-- 上传提示 -->
+    <view class="upload-tip" wx:if="{{showUploadTip}}">
+      照片将在审核通过后显示
+    </view>
+  </view>
+  
+  <!-- 基本资料 -->
+  <view class="info-section">
+    <view class="section-title">基本资料</view>
+    
+    <view class="form-item">
+      <view class="form-label">昵称</view>
+      <view class="form-content" wx:if="{{!isEditing}}">{{form.nickname}}</view>
+      <input 
+        class="form-input" 
+        value="{{form.nickname}}" 
+        placeholder="请输入昵称" 
+        maxlength="15"
+        bindinput="onInput"
+        data-field="nickname"
+        wx:if="{{isEditing}}" />
+    </view>
+    
+    <view class="form-item">
+      <view class="form-label">性别</view>
+      <view class="form-content" wx:if="{{!isEditing}}">{{form.gender}}</view>
+      <radio-group 
+        class="radio-group" 
+        bindchange="onGenderChange"
+        wx:if="{{isEditing}}">
+        <label class="radio" wx:for="{{genderOptions}}" wx:key="index">
+          <radio value="{{item}}" checked="{{form.gender === item}}" />
+          <text>{{item}}</text>
+        </label>
+      </radio-group>
+    </view>
+    
+    <view class="form-item">
+      <view class="form-label">出生日期</view>
+      <view class="form-content" wx:if="{{!isEditing}}">{{form.birthdate}}</view>
+      <picker 
+        mode="date" 
+        value="{{form.birthdate}}" 
+        start="1960-01-01" 
+        end="2005-12-31" 
+        bindchange="onBirthdateChange"
+        wx:if="{{isEditing}}">
+        <view class="picker">{{form.birthdate}}</view>
+      </picker>
+    </view>
+    
+    <view class="form-item">
+      <view class="form-label">所在地</view>
+      <view class="form-content" wx:if="{{!isEditing}}">{{form.location}}</view>
+      <picker 
+        mode="region" 
+        bindchange="onRegionChange"
+        wx:if="{{isEditing}}">
+        <view class="picker">{{form.location}}</view>
+      </picker>
+    </view>
+  </view>
+  
+  <!-- 个人介绍 -->
+  <view class="bio-section">
+    <view class="section-title">个人介绍</view>
+    <view class="form-content bio-content" wx:if="{{!isEditing}}">{{form.bio || '暂无介绍'}}</view>
+    <textarea 
+      class="bio-textarea" 
+      value="{{form.bio}}" 
+      placeholder="介绍一下自己吧，让别人更好地了解你" 
+      maxlength="200"
+      bindinput="onInput"
+      data-field="bio"
+      wx:if="{{isEditing}}" />
+  </view>
+  
+  <!-- 兴趣标签 -->
+  <view class="tags-section">
+    <view class="section-title">兴趣标签 <text class="tag-tip">(最多选择5个)</text></view>
+    
+    <view class="tags-grid">
+      <view 
+        class="tag-item {{selectedTags.indexOf(item) > -1 ? 'selected' : ''}}" 
+        wx:for="{{tags}}" 
+        wx:key="index"
+        bindtap="toggleTag"
+        data-tag="{{item}}"
+        hover-class="tag-item-hover">
+        {{item}}
+      </view>
+    </view>
+  </view>
+  
+  <!-- 按钮区域 -->
+  <view class="button-group" wx:if="{{isEditing}}">
+    <view class="btn-primary" bindtap="submitForm">保存</view>
+    <view class="btn-secondary" bindtap="toggleEdit" wx:if="{{!isSetup}}">取消</view>
+  </view>
+  
+  <!-- 退出登录 -->
+  <view class="logout-btn" bindtap="logout" wx:if="{{!isSetup && !isEditing}}">退出登录</view>
+</view> 

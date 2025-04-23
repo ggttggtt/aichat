@@ -1,0 +1,168 @@
+.discover-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20rpx;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 80vh;
+}
+
+.loading-text {
+  font-size: 16px;
+  color: #999;
+  margin-top: 20px;
+}
+
+/* 没有更多推荐 */
+.no-more-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 80vh;
+}
+
+.no-more-image {
+  width: 200rpx;
+  height: 200rpx;
+  margin-bottom: 30rpx;
+}
+
+.no-more-text {
+  font-size: 16px;
+  color: #999;
+  margin-bottom: 30rpx;
+}
+
+/* 用户卡片 */
+.user-card {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.15);
+  background-color: #fff;
+}
+
+.user-photo {
+  width: 100%;
+  height: 70%;
+  object-fit: cover;
+}
+
+.user-info {
+  padding: 30rpx;
+  height: 30%;
+  box-sizing: border-box;
+}
+
+.user-basic {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.user-name-age {
+  display: flex;
+  align-items: center;
+}
+
+.user-name {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-right: 12rpx;
+}
+
+.user-age {
+  font-size: 30rpx;
+  color: #666;
+}
+
+.user-distance {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.user-tags {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 16rpx;
+}
+
+.tag {
+  background-color: #f0f0f0;
+  padding: 8rpx 20rpx;
+  border-radius: 30rpx;
+  font-size: 24rpx;
+  margin-right: 16rpx;
+  margin-bottom: 12rpx;
+  color: #666;
+}
+
+.user-bio {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 操作按钮 */
+.action-buttons {
+  position: absolute;
+  bottom: -80rpx;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.action-button {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.1);
+  margin: 0 30rpx;
+}
+
+.icon-x {
+  font-size: 50rpx;
+  color: #FF4D67;
+  font-weight: bold;
+}
+
+.icon-check {
+  font-size: 50rpx;
+  color: #fff;
+  font-weight: bold;
+}
+
+.dislike {
+  background-color: #fff;
+  border: 1px solid #eee;
+}
+
+.like {
+  background-color: #FF4D67;
+  border: 1px solid #FF4D67;
+} 

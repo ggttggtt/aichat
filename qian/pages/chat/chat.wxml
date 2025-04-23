@@ -1,0 +1,45 @@
+<view class="chat-container">
+  <!-- 聊天记录 -->
+  <scroll-view 
+    class="message-list" 
+    id="message-list"
+    scroll-y="true" 
+    scroll-top="{{scrollTop}}"
+    scroll-with-animation="true">
+    
+    <view class="message-item {{item.isSelf ? 'self' : ''}}" wx:for="{{messages}}" wx:key="id">
+      <!-- 对方头像 -->
+      <image 
+        wx:if="{{!item.isSelf}}" 
+        class="avatar" 
+        src="{{item.avatar || '/images/default-avatar.png'}}"
+        bindtap="viewUserDetail"></image>
+      
+      <!-- 消息内容 -->
+      <view class="message-bubble {{item.isSelf ? 'self-bubble' : 'other-bubble'}}">
+        <text>{{item.content}}</text>
+      </view>
+      
+      <!-- 自己头像 -->
+      <image 
+        wx:if="{{item.isSelf}}" 
+        class="avatar self-avatar" 
+        src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}"></image>
+    </view>
+    
+    <!-- 底部留白，保证新消息可见 -->
+    <view class="message-bottom-space"></view>
+  </scroll-view>
+  
+  <!-- 输入区域 -->
+  <view class="input-area">
+    <input 
+      class="message-input" 
+      value="{{inputValue}}" 
+      placeholder="输入消息..." 
+      confirm-type="send"
+      bindconfirm="sendMessage"
+      bindinput="onInput" />
+    <view class="send-button" bindtap="sendMessage">发送</view>
+  </view>
+</view> 

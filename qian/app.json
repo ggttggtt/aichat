@@ -1,0 +1,54 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/moments/moments",
+    "pages/publishMoment/publishMoment",
+    "pages/momentDetail/momentDetail",
+    "pages/discover/discover",
+    "pages/match/match",
+    "pages/profile/profile"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#FF4D67",
+    "navigationBarTitleText": "恋爱交友",
+    "navigationBarTextStyle": "white"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#FF4D67",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/discover/discover",
+        "text": "发现",
+        "iconPath": "images/tab/discover.png",
+        "selectedIconPath": "images/tab/discover_selected.png"
+      },
+      {
+        "pagePath": "pages/match/match",
+        "text": "匹配",
+        "iconPath": "images/tab/match.png",
+        "selectedIconPath": "images/tab/match_selected.png"
+      },
+      {
+        "pagePath": "pages/moments/moments",
+        "text": "动态",
+        "iconPath": "images/tab/moments.png",
+        "selectedIconPath": "images/tab/moments_selected.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "images/tab/profile.png",
+        "selectedIconPath": "images/tab/profile_selected.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "usingComponents": {
+    "emoji-picker": "/components/emoji-picker/emoji-picker"
+  }
+} 

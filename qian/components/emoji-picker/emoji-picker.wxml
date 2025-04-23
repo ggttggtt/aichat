@@ -1,0 +1,16 @@
+<view class="emoji-picker">
+  <view class="emoji-container">
+    <scroll-view scroll-y="true" class="emoji-scroll">
+      <view class="emoji-grid">
+        <view 
+          class="emoji-item" 
+          wx:for="{{emojiList}}" 
+          wx:key="index" 
+          bindtap="onEmojiTap" 
+          data-emoji="{{item}}">
+          {{item}}
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view> 

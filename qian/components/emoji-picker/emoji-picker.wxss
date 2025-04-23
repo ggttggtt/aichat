@@ -1,0 +1,35 @@
+.emoji-picker {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border-top: 1rpx solid #eee;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+  z-index: 100;
+}
+
+.emoji-container {
+  height: 400rpx;
+  padding: 20rpx;
+}
+
+.emoji-scroll {
+  height: 100%;
+}
+
+.emoji-grid {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 10rpx;
+}
+
+.emoji-item {
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 44rpx;
+  margin: 5rpx;
+} 

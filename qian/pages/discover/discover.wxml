@@ -1,0 +1,57 @@
+<view class="discover-container">
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-text">正在寻找附近的人...</view>
+  </view>
+  
+  <!-- 没有更多推荐 -->
+  <view class="no-more-container" wx:elif="{{!currentProfile}}">
+    <image src="/images/no-more.png" mode="aspectFit" class="no-more-image"></image>
+    <view class="no-more-text">暂时没有更多推荐</view>
+    <view class="btn-primary" bindtap="loadUserProfiles">刷新</view>
+  </view>
+  
+  <!-- 推荐卡片 -->
+  <view class="swipe-cards" wx:else>
+    <!-- 当前用户卡片 -->
+    <view class="user-card"
+          animation="{{animation}}"
+          bindtouchstart="touchStart"
+          bindtouchmove="touchMove"
+          bindtouchend="touchEnd"
+          bindtap="viewUserDetail">
+      
+      <!-- 卡片主图 -->
+      <image src="{{currentProfile.photos[0]}}" mode="aspectFill" class="user-photo"></image>
+      
+      <!-- 用户信息 -->
+      <view class="user-info">
+        <view class="user-basic">
+          <view class="user-name-age">
+            <text class="user-name">{{currentProfile.nickname}}</text>
+            <text class="user-age">{{currentProfile.age}}</text>
+          </view>
+          <view class="user-distance">{{currentProfile.distance}}km</view>
+        </view>
+        
+        <!-- 用户标签 -->
+        <view class="user-tags">
+          <view class="tag" wx:for="{{currentProfile.tags}}" wx:key="index">{{item}}</view>
+        </view>
+        
+        <!-- 用户简介 -->
+        <view class="user-bio">{{currentProfile.bio}}</view>
+      </view>
+    </view>
+    
+    <!-- 操作按钮 -->
+    <view class="action-buttons">
+      <view class="action-button dislike" bindtap="onDislike">
+        <view class="icon-x">×</view>
+      </view>
+      <view class="action-button like" bindtap="onLike">
+        <view class="icon-check">✓</view>
+      </view>
+    </view>
+  </view>
+</view> 

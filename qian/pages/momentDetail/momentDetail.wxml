@@ -1,0 +1,114 @@
+<view class="detail-container">
+  <!-- 动态内容区 -->
+  <view class="moment-card">
+    <!-- 用户信息 -->
+    <view class="user-info" bindtap="viewUserDetail" data-id="{{moment.userId}}">
+      <image src="{{moment.avatar}}" class="avatar"></image>
+      <view class="user-name-time">
+        <text class="user-name">{{moment.nickname}}</text>
+        <text class="post-time">{{moment.createTime}}</text>
+      </view>
+    </view>
+
+    <!-- 动态内容 -->
+    <view class="moment-content">
+      <text class="content-text">{{moment.content}}</text>
+      
+      <!-- 图片区域 -->
+      <view class="image-container" wx:if="{{moment.images.length > 0}}">
+        <block wx:if="{{moment.images.length === 1}}">
+          <image 
+            src="{{moment.images[0]}}" 
+            mode="widthFix" 
+            class="single-image"
+            bindtap="previewImage"
+            data-urls="{{moment.images}}"
+            data-current="{{moment.images[0]}}"></image>
+        </block>
+        <view class="image-grid" wx:else>
+          <image 
+            wx:for="{{moment.images}}" 
+            wx:for-item="img" 
+            wx:key="index"
+            src="{{img}}" 
+            mode="aspectFill" 
+            class="grid-image"
+            bindtap="previewImage"
+            data-urls="{{moment.images}}"
+            data-current="{{img}}"></image>
+        </view>
+      </view>
+      
+      <!-- 位置信息 -->
+      <view class="location" wx:if="{{moment.location}}">
+        <image src="/images/location.png" class="location-icon"></image>
+        <text>{{moment.location}}</text>
+      </view>
+    </view>
+
+    <!-- 操作区 -->
+    <view class="action-bar">
+      <view class="action-item {{moment.isLiked ? 'active' : ''}}" bindtap="likeMoment">
+        <image src="{{moment.isLiked ? '/images/like_active.png' : '/images/like.png'}}" class="action-icon"></image>
+        <text>{{moment.likeCount || 0}}</text>
+      </view>
+      <view class="action-item" bindtap="showCommentInput">
+        <image src="/images/comment.png" class="action-icon"></image>
+        <text>{{moment.commentCount || 0}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 评论区 -->
+  <view class="comment-section">
+    <view class="section-title">全部评论 ({{comments.length}})</view>
+    
+    <view class="comment-list" wx:if="{{comments.length > 0}}">
+      <view class="comment-item" wx:for="{{comments}}" wx:key="commentId">
+        <view class="comment-user-info">
+          <image src="{{item.avatar || '/images/default_avatar.png'}}" class="comment-avatar"></image>
+          <view class="comment-right">
+            <view class="comment-name-content">
+              <text class="comment-name">{{item.nickname}}</text>
+              <block wx:if="{{item.replyUserName}}">
+                <text class="reply-to">回复</text>
+                <text class="reply-name">{{item.replyUserName}}</text>
+              </block>
+              <text class="comment-content">{{item.content}}</text>
+            </view>
+            <view class="comment-footer">
+              <text class="comment-time">{{item.createTime}}</text>
+              <view class="comment-actions">
+                <view class="action-btn like-btn {{item.isLiked ? 'active' : ''}}" bindtap="likeComment" data-id="{{item.commentId}}">
+                  <image src="{{item.isLiked ? '/images/like_active.png' : '/images/like.png'}}" class="like-icon"></image>
+                  <text>{{item.likeCount || 0}}</text>
+                </view>
+                <view class="action-btn" bindtap="replyComment" data-id="{{item.commentId}}" data-name="{{item.nickname}}">回复</view>
+                <view class="action-btn delete" wx:if="{{item.userId == userInfo.userId || moment.userId == userInfo.userId}}" bindtap="deleteComment" data-id="{{item.commentId}}">删除</view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <view class="no-comment" wx:else>
+      <text>暂无评论，快来发表第一条评论吧~</text>
+    </view>
+  </view>
+
+  <!-- 底部评论输入栏 -->
+  <view class="comment-bar">
+    <view class="input-container">
+      <input class="comment-input" placeholder="{{replyTo ? '回复 '+replyTo+': ' : '说点什么...'}}" 
+             value="{{commentContent}}" bindinput="onCommentInput" confirm-type="send" />
+      <view class="emoji-button" bindtap="toggleEmojiPicker">
+        <image class="emoji-icon" src="/images/emoji.png"></image>
+      </view>
+    </view>
+    <view class="send-btn {{commentContent ? 'active' : ''}}" bindtap="addComment">发送</view>
+  </view>
+
+  <!-- 表情选择器 -->
+  <emoji-picker wx:if="{{showEmojiPicker}}" bindselect="onEmojiSelect"></emoji-picker>
+</view> 

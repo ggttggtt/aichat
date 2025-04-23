@@ -1,0 +1,86 @@
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  height: 100vh;
+  padding: 100rpx 50rpx;
+  box-sizing: border-box;
+  background-color: #fff;
+}
+
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 100rpx;
+}
+
+.logo {
+  width: 180rpx;
+  height: 180rpx;
+  margin-bottom: 40rpx;
+}
+
+.app-name {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #FF4D67;
+  margin-bottom: 20rpx;
+}
+
+.app-slogan {
+  font-size: 32rpx;
+  color: #888;
+}
+
+.login-form {
+  width: 100%;
+}
+
+.login-button {
+  width: 100% !important;
+  height: 90rpx;
+  line-height: 90rpx;
+  background-color: #FF4D67;
+  color: white;
+  border-radius: 45rpx;
+  font-size: 32rpx;
+  margin-bottom: 40rpx;
+}
+
+.terms {
+  font-size: 24rpx;
+  color: #999;
+  text-align: center;
+}
+
+.terms-link {
+  color: #FF4D67;
+  display: inline;
+}
+
+.login-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.success-icon {
+  width: 120rpx;
+  height: 120rpx;
+  background-color: #FF4D67;
+  color: white;
+  font-size: 60rpx;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 40rpx;
+}
+
+.success-text {
+  font-size: 32rpx;
+  color: #666;
+} 

@@ -1,0 +1,92 @@
+<view class="user-detail-container">
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-text">加载中...</view>
+  </view>
+  
+  <view class="user-detail" wx:else>
+    <!-- 照片轮播 -->
+    <swiper 
+      class="photo-swiper" 
+      indicator-dots="{{false}}" 
+      autoplay="{{false}}" 
+      current="{{currentPhotoIndex}}"
+      bindchange="swiperChange"
+      bindtap="previewPhoto">
+      <swiper-item wx:for="{{userDetail.photos}}" wx:key="index">
+        <image src="{{item}}" mode="aspectFill" class="user-photo"></image>
+      </swiper-item>
+    </swiper>
+    
+    <!-- 照片指示器 -->
+    <view class="photo-indicator">
+      <view 
+        class="indicator-dot {{currentPhotoIndex === index ? 'active' : ''}}" 
+        wx:for="{{userDetail.photos}}" 
+        wx:key="index" 
+        bindtap="changePhoto"
+        data-index="{{index}}"></view>
+    </view>
+    
+    <!-- 基本信息 -->
+    <view class="user-info card">
+      <view class="user-name-age">
+        <text class="user-name">{{userDetail.nickname}}</text>
+        <text class="user-age">{{userDetail.age}}</text>
+      </view>
+      
+      <view class="user-location">
+        <image src="/images/location.png" mode="aspectFit" class="location-icon"></image>
+        <text>距离 {{userDetail.distance}} km</text>
+      </view>
+      
+      <!-- 用户标签 -->
+      <view class="user-tags">
+        <view class="tag" wx:for="{{userDetail.tags}}" wx:key="index">{{item}}</view>
+      </view>
+    </view>
+    
+    <!-- 个人简介 -->
+    <view class="card">
+      <view class="card-title">个人简介</view>
+      <view class="user-bio">{{userDetail.bio}}</view>
+    </view>
+    
+    <!-- 详细资料 -->
+    <view class="card">
+      <view class="card-title">详细资料</view>
+      <view class="user-details">
+        <view class="detail-item" wx:if="{{userDetail.location}}">
+          <view class="detail-label">所在地</view>
+          <view class="detail-value">{{userDetail.location}}</view>
+        </view>
+        <view class="detail-item" wx:if="{{userDetail.education}}">
+          <view class="detail-label">学历</view>
+          <view class="detail-value">{{userDetail.education}}</view>
+        </view>
+        <view class="detail-item" wx:if="{{userDetail.job}}">
+          <view class="detail-label">职业</view>
+          <view class="detail-value">{{userDetail.job}}</view>
+        </view>
+        <view class="detail-item" wx:if="{{userDetail.height}}">
+          <view class="detail-label">身高</view>
+          <view class="detail-value">{{userDetail.height}}cm</view>
+        </view>
+        <view class="detail-item" wx:if="{{userDetail.constellation}}">
+          <view class="detail-label">星座</view>
+          <view class="detail-value">{{userDetail.constellation}}</view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 操作按钮 -->
+    <view class="action-buttons">
+      <view class="action-button dislike" bindtap="onDislike">
+        <image src="/images/dislike.png" mode="aspectFit"></image>
+      </view>
+      <view class="action-button like" bindtap="onLike">
+        <image src="/images/like.png" mode="aspectFit"></image>
+      </view>
+    </view>
+  </view>
+</view> 

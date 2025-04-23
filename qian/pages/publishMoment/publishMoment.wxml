@@ -1,0 +1,52 @@
+<view class="publish-container">
+  <!-- 内容输入区 -->
+  <view class="content-input-area">
+    <textarea 
+      class="content-input" 
+      placeholder="{{isComment ? '写下你的评论...' : '分享你的动态..'}}"
+      maxlength="500" 
+      bindinput="onInput"
+      value="{{content}}"
+      show-confirm-bar="{{false}}"
+      auto-focus="{{true}}"
+      fixed="{{true}}"></textarea>
+    
+    <view class="word-count">{{content.length}}/500</view>
+  </view>
+  
+  <!-- 图片区域（评论页面不显示） -->
+  <view class="image-area" wx:if="{{!isComment}}">
+    <view class="image-grid">
+      <!-- 已选图片 -->
+      <view class="image-item" wx:for="{{images}}" wx:key="index">
+        <image src="{{item}}" mode="aspectFill" class="preview-image" bindtap="previewImage" data-src="{{item}}"></image>
+        <view class="delete-icon" bindtap="deleteImage" data-index="{{index}}">×</view>
+      </view>
+      
+      <!-- 添加图片按钮 -->
+      <view class="add-image" bindtap="chooseImage" wx:if="{{images.length < 9}}">
+        <view class="add-icon">+</view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 位置信息（评论页面不显示） -->
+  <view class="location-area" wx:if="{{!isComment}}">
+    <view class="location-button" bindtap="getLocation" wx:if="{{!showLocation}}">
+      <image src="/images/location.png" class="location-icon"></image>
+      <text>所在位置</text>
+    </view>
+    
+    <view class="location-info" wx:if="{{showLocation}}">
+      <view class="location-text">{{location}}</view>
+      <view class="delete-location" bindtap="deleteLocation">×</view>
+    </view>
+  </view>
+  
+  <!-- 发布按钮 -->
+  <view class="submit-area">
+    <view class="{{submitDisabled ? 'submit-button disabled' : 'submit-button'}}" bindtap="submitForm">
+      {{isComment ? '发表评论' : '发布动态'}}
+    </view>
+  </view>
+</view> 

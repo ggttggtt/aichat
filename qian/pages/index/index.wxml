@@ -1,0 +1,26 @@
+<view class="login-container">
+  <view class="logo-container">
+    <image class="logo" src="/images/logo.png" mode="aspectFit"></image>
+    <view class="app-name">恋爱交友</view>
+    <view class="app-slogan">找到命中注定的那个TA</view>
+  </view>
+  
+  <view class="login-form" wx:if="{{!isLoggedIn}}">
+    <button 
+      wx:if="{{canIUse}}"
+      open-type="getUserInfo" 
+      bindgetuserinfo="onGetUserInfo"
+      class="login-button">微信授权登录</button>
+    <view wx:else>请升级微信版本</view>
+    
+    <view class="terms">
+      登录即表示您同意
+      <navigator url="/pages/terms/terms" class="terms-link">用户协议与隐私政策</navigator>
+    </view>
+  </view>
+  
+  <view class="login-success" wx:else>
+    <view class="success-icon">✓</view>
+    <view class="success-text">登录成功，正在进入...</view>
+  </view>
+</view> 
