@@ -44,22 +44,68 @@ Page({
         longitude: app.globalData.userLocation ? app.globalData.userLocation.longitude : null
       },
       success: res => {
-        if (res.data.success && res.data.data.length > 0) {
-          this.setData({
-            userProfiles: res.data.data,
-            currentProfile: res.data.data[0],
-            currentIndex: 0,
-            loading: false
-          })
+        // 检查数据结构是否正确
+        if (res.data.data) {
+          // 处理数据，确保所有需要的字段都存在
+          const profiles = res.data.data.map(profile => {
+            return {
+              id: profile.id,
+              nickname: profile.nickname || '无名',
+              age: profile.age || '?',
+              gender: profile.gender || '未知',
+              // 确保至少有一张照片
+              photos: Array.isArray(profile.photos) && profile.photos.length > 0 
+                ? profile.photos 
+                : [profile.avatarUrl || '/images/default-avatar.png'],
+              // 默认头像
+              avatarUrl: profile.avatarUrl || (Array.isArray(profile.photos) && profile.photos.length > 0 
+                ? profile.photos[0] 
+                : '/images/default-avatar.png'),
+              distance: profile.distance != null ? profile.distance : '未知',
+              // 确保标签是数组
+              tags: Array.isArray(profile.tags) ? profile.tags : [],
+              bio: profile.bio || '这个人很懒，什么都没留下'
+            };
+          });   
+          if (profiles.length > 0) {
+            this.setData({
+              userProfiles: profiles,
+              currentProfile: profiles[0],
+              currentIndex: 0,
+              loading: false
+            });
+          } else {
+            this.setData({
+              userProfiles: [],
+              currentProfile: null,
+              loading: false
+            });
+            console.log('No profiles returned from API');
+          }
         } else {
+          console.error('API response format error:', res.data);
           this.setData({
             userProfiles: [],
             currentProfile: null,
             loading: false
-          })
+          });
+          
+          // 显示错误提示
+          wx.showToast({
+            title: '加载失败，请重试',
+            icon: 'none'
+          });
         }
       },
-      fail: () => {
+      fail: (err) => {
+        console.error('API request failed:', err);
+        
+        // 显示错误提示
+        wx.showToast({
+          title: '网络错误，请重试',
+          icon: 'none'
+        });
+        
         // 演示数据，实际应该从服务器获取
         const mockData = [
           {
@@ -67,7 +113,7 @@ Page({
             nickname: '小红',
             age: 25,
             gender: '女',
-            avatar: 'https://img.yzcdn.cn/vant/cat.jpeg',
+            avatarUrl: 'https://img.yzcdn.cn/vant/cat.jpeg',
             photos: [
               'https://img.yzcdn.cn/vant/cat.jpeg',
               'https://img.yzcdn.cn/vant/dog.jpeg'
@@ -81,7 +127,7 @@ Page({
             nickname: '小明',
             age: 28,
             gender: '男',
-            avatar: 'https://img.yzcdn.cn/vant/dog.jpeg',
+            avatarUrl: 'https://img.yzcdn.cn/vant/dog.jpeg',
             photos: [
               'https://img.yzcdn.cn/vant/dog.jpeg',
               'https://img.yzcdn.cn/vant/cat.jpeg'
@@ -97,7 +143,7 @@ Page({
           currentProfile: mockData[0],
           currentIndex: 0,
           loading: false
-        })
+        });
       }
     })
   },
@@ -180,23 +226,22 @@ Page({
     if (!this.data.currentProfile) return
     
     const profileId = this.data.currentProfile.id
+    const currentUserId = app.globalData.userId || 1
     
     // 加入到已喜欢列表
     app.globalData.likedProfiles.push(profileId)
     
     // 发送喜欢请求到服务器
     wx.request({
-      url: app.globalData.apiBaseUrl + '/users/like',
+      url: app.globalData.apiBaseUrl + '/api/like/action?userId=' + currentUserId + '&likedUserId=' + profileId + '&type=1',
       method: 'POST',
       header: {
-        'Authorization': 'Bearer ' + wx.getStorageSync('token')
-      },
-      data: {
-        targetUserId: profileId
+        'Authorization': 'Bearer ' + wx.getStorageSync('token'),
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
       success: res => {
         // 如果是匹配
-        if (res.data.isMatch) {
+        if (res.data && res.data.code === "200" && res.data.isMatch) {
           wx.showToast({
             title: '匹配成功！',
             icon: 'success'
@@ -205,6 +250,13 @@ Page({
           // 添加到匹配列表
           app.globalData.matches.push(res.data.matchInfo)
         }
+      },
+      fail: err => {
+        console.error('Like request failed:', err)
+        wx.showToast({
+          title: '操作失败，请重试',
+          icon: 'none'
+        })
       }
     })
     
@@ -216,16 +268,21 @@ Page({
     if (!this.data.currentProfile) return
     
     const profileId = this.data.currentProfile.id
+    const currentUserId = app.globalData.userId || 1
     
     // 发送不喜欢请求到服务器
     wx.request({
-      url: app.globalData.apiBaseUrl + '/users/dislike',
+      url: app.globalData.apiBaseUrl + '/api/like/action?userId=' + currentUserId + '&likedUserId=' + profileId + '&type=0',
       method: 'POST',
       header: {
-        'Authorization': 'Bearer ' + wx.getStorageSync('token')
+        'Authorization': 'Bearer ' + wx.getStorageSync('token'),
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
-      data: {
-        targetUserId: profileId
+      success: res => {
+        // 处理成功响应
+      },
+      fail: err => {
+        console.error('Dislike request failed:', err)
       }
     })
     

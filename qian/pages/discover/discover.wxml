@@ -12,7 +12,7 @@
   </view>
   
   <!-- 推荐卡片 -->
-  <view class="swipe-cards" wx:else>
+  <view class="swipe-cards" wx:elif="{{currentProfile}}">
     <!-- 当前用户卡片 -->
     <view class="user-card"
           animation="{{animation}}"
@@ -22,25 +22,25 @@
           bindtap="viewUserDetail">
       
       <!-- 卡片主图 -->
-      <image src="{{currentProfile.photos[0]}}" mode="aspectFill" class="user-photo"></image>
+      <image src="{{currentProfile.photos[0] || currentProfile.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill" class="user-photo"></image>
       
       <!-- 用户信息 -->
       <view class="user-info">
         <view class="user-basic">
           <view class="user-name-age">
-            <text class="user-name">{{currentProfile.nickname}}</text>
-            <text class="user-age">{{currentProfile.age}}</text>
+            <text class="user-name">{{currentProfile.nickname || '无名'}}</text>
+            <text class="user-age" wx:if="{{currentProfile.age}}">{{currentProfile.age}}</text>
           </view>
-          <view class="user-distance">{{currentProfile.distance}}km</view>
+          <view class="user-distance" wx:if="{{currentProfile.distance}}">{{currentProfile.distance}}km</view>
         </view>
         
         <!-- 用户标签 -->
-        <view class="user-tags">
+        <view class="user-tags" wx:if="{{currentProfile.tags && currentProfile.tags.length > 0}}">
           <view class="tag" wx:for="{{currentProfile.tags}}" wx:key="index">{{item}}</view>
         </view>
         
         <!-- 用户简介 -->
-        <view class="user-bio">{{currentProfile.bio}}</view>
+        <view class="user-bio" wx:if="{{currentProfile.bio}}">{{currentProfile.bio}}</view>
       </view>
     </view>
     
@@ -53,5 +53,11 @@
         <view class="icon-check">✓</view>
       </view>
     </view>
+  </view>
+
+  <!-- 调试信息 -->
+  <view class="debug-info" wx:if="{{app.globalData.debug}}">
+    <text>当前用户ID: {{currentProfile.id}}</text>
+    <text>位置: {{app.globalData.userLocation ? (app.globalData.userLocation.latitude + ',' + app.globalData.userLocation.longitude) : '未获取'}}</text>
   </view>
 </view> 

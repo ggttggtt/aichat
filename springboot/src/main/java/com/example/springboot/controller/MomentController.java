@@ -104,10 +104,11 @@ public class MomentController {
 
     /**
      * 发布动态
-     * @param moment 动态信息
-     * @param images 图片文件（可选）
-     * @param location 位置信息（可选）
-     * @param visibility 可见性（0：公开，1：仅关注者可见，2：仅自己可见）
+     * @param content 动态内容
+     * @param images 图片文件数组
+     * @param location 位置信息
+     * @param visibility 可见性
+     * @param momentBody 请求体
      * @return 操作结果
      */
     @PostMapping
@@ -117,76 +118,86 @@ public class MomentController {
             @RequestParam(required = false) String location,
             @RequestParam(required = false, defaultValue = "0") Integer visibility,
             @RequestBody(required = false) Moment momentBody) {
-        // 获取当前登录用户
-        User currentUser = TokenUtils.getCurrentUser();
-        if (currentUser == null) {
-            return Result.error("401", "未登录");
-        }
-        
-        // 创建动态对象
-        Moment moment = new Moment();
-        moment.setUserId(currentUser.getId());
-        
-        // 处理请求体和表单参数
-        if (momentBody != null) {
-            // 优先使用请求体中的数据
-            if (momentBody.getContent() != null) {
-                moment.setContent(momentBody.getContent());
+        try {
+            // 获取当前登录用户
+            User currentUser = TokenUtils.getCurrentUser();
+            if (currentUser == null) {
+                return Result.error("401", "未登录");
             }
-            if (momentBody.getLocation() != null) {
-                moment.setLocation(momentBody.getLocation());
+            
+            // 创建动态对象
+            Moment moment = new Moment();
+            moment.setUserId(currentUser.getId());
+            
+            // 处理请求体和表单参数
+            if (momentBody != null) {
+                // 优先使用请求体中的数据
+                if (momentBody.getContent() != null) {
+                    moment.setContent(momentBody.getContent());
+                }
+                if (momentBody.getLocation() != null) {
+                    moment.setLocation(momentBody.getLocation());
+                }
+                if (momentBody.getVisibility() != null) {
+                    moment.setVisibility(momentBody.getVisibility());
+                }
+                if (momentBody.getImageUrls() != null) {
+                    moment.setImageUrls(momentBody.getImageUrls());
+                }
+            } else {
+                // 使用表单参数
+                if (content == null || content.trim().isEmpty()) {
+                    return Result.error("400", "动态内容不能为空");
+                }
+                moment.setContent(content);
+                moment.setLocation(location);
+                moment.setVisibility(visibility);
             }
-            if (momentBody.getVisibility() != null) {
-                moment.setVisibility(momentBody.getVisibility());
-            }
-        } else {
-            // 使用表单参数
-            if (content == null || content.trim().isEmpty()) {
-                return Result.error("400", "动态内容不能为空");
-            }
-            moment.setContent(content);
-            moment.setLocation(location);
-            moment.setVisibility(visibility);
-        }
-        
-        // 图片上传
-        List<String> imageUrls = new ArrayList<>();
-        if (images != null && images.length > 0) {
-            for (MultipartFile file : images) {
-                if (!file.isEmpty()) {
-                    try {
-                        String fileName = file.getOriginalFilename();
-                        String extension = fileName.substring(fileName.lastIndexOf("."));
-                        String newFileName = UUID.randomUUID().toString() + extension;
-                        String relativePath = "upload/moments/" + newFileName;
-                        String fullPath = uploadPath + relativePath;
-                        
-                        // 确保目录存在
-                        File targetFile = new File(fullPath);
-                        if (!targetFile.getParentFile().exists()) {
-                            targetFile.getParentFile().mkdirs();
+            
+            // 如果既没有提供momentBody.getImageUrls()，也没有提供images数组，则处理上传图片
+            if (moment.getImageUrls() == null && images != null && images.length > 0) {
+                List<String> imageUrls = new ArrayList<>();
+                for (MultipartFile file : images) {
+                    if (!file.isEmpty()) {
+                        try {
+                            String fileName = file.getOriginalFilename();
+                            String extension = fileName.substring(fileName.lastIndexOf("."));
+                            String newFileName = UUID.randomUUID().toString() + extension;
+                            String relativePath = "upload/moments/" + newFileName;
+                            String fullPath = uploadPath + relativePath;
+                            
+                            // 确保目录存在
+                            File targetFile = new File(fullPath);
+                            if (!targetFile.getParentFile().exists()) {
+                                targetFile.getParentFile().mkdirs();
+                            }
+                            
+                            // 保存文件
+                            file.transferTo(targetFile);
+                            imageUrls.add(relativePath);
+                        } catch (IOException e) {
+                            log.error("文件上传失败: {}", e.getMessage());
+                            return Result.error("500", "文件上传失败: " + e.getMessage());
                         }
-                        
-                        // 保存文件
-                        file.transferTo(targetFile);
-                        imageUrls.add(relativePath);
-                    } catch (IOException e) {
-                        log.error("文件上传失败: {}", e.getMessage());
-                        return Result.error("500", "文件上传失败");
                     }
                 }
+                moment.setImageUrls(String.join(",", imageUrls));
             }
-        }
-        
-        moment.setImageUrls(String.join(",", imageUrls));
-        moment.setLikeCount(0);
-        moment.setCommentCount(0);
-        
-        Moment newMoment = momentService.publishMoment(moment);
-        if (newMoment != null) {
-            return Result.success(newMoment);
-        } else {
-            return Result.error("400", "发布失败");
+            
+            // 设置初始统计数据
+            moment.setLikeCount(0);
+            moment.setCommentCount(0);
+            
+            // 保存动态
+            Moment newMoment = momentService.publishMoment(moment);
+            if (newMoment != null) {
+                return Result.success(newMoment);
+            } else {
+                return Result.error("500", "发布动态失败");
+            }
+        } catch (Exception e) {
+            log.error("发布动态异常: ", e);
+            return Result.error("500", "服务器异常: " + e.getMessage());
         }
     }
 

@@ -191,12 +191,33 @@ public class UserController {
      */
     @GetMapping("/recommend")
     public Result recommendUsers(
-            @RequestParam(required = false) Double latitude, // 设置为非必须，以便处理前端未提供位置的情况
-            @RequestParam(required = false) Double longitude) {
+            @RequestParam(required = false) String latitude, // 改为String类型
+            @RequestParam(required = false) String longitude) { // 改为String类型
         
         Integer currentUserId = getCurrentUserId();
+        
+        // 将字符串转换为Double，处理"null"字符串
+        Double lat = null;
+        Double lng = null;
+        
+        if (latitude != null && !latitude.equals("null") && !latitude.isEmpty()) {
+            try {
+                lat = Double.parseDouble(latitude);
+            } catch (NumberFormatException e) {
+                // 转换失败时不处理，保持为null
+            }
+        }
+        
+        if (longitude != null && !longitude.equals("null") && !longitude.isEmpty()) {
+            try {
+                lng = Double.parseDouble(longitude);
+            } catch (NumberFormatException e) {
+                // 转换失败时不处理，保持为null
+            }
+        }
+        
         // 检查 userService 是否有 getRecommendations 方法，如果没有，需要添加
-        List<UserProfile> recommendations = userService.getRecommendations(currentUserId, latitude, longitude);
+        List<UserProfile> recommendations = userService.getRecommendations(currentUserId, lat, lng);
         return Result.success(recommendations);
     }
 

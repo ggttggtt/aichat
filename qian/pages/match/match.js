@@ -28,7 +28,7 @@ Page({
         'Authorization': 'Bearer ' + wx.getStorageSync('token')
       },
       success: res => {
-        if (res.data.success) {
+        if (res.data.code == "200") {
           this.setData({
             matches: res.data.data,
             loading: false
