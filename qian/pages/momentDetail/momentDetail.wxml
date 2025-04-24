@@ -101,7 +101,8 @@
   <view class="comment-bar">
     <view class="input-container">
       <input class="comment-input" placeholder="{{replyTo ? '回复 '+replyTo+': ' : '说点什么...'}}" 
-             value="{{commentContent}}" bindinput="onCommentInput" confirm-type="send" />
+             value="{{commentContent}}" bindinput="onCommentInput" confirm-type="send" 
+             focus="{{inputFocus}}" bindfocus="onInputFocus" bindblur="onInputBlur" />
       <view class="emoji-button" bindtap="toggleEmojiPicker">
         <image class="emoji-icon" src="/images/emoji.png"></image>
       </view>

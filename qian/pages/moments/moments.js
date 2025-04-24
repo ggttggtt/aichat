@@ -27,32 +27,68 @@ Page({
   },
 
   // 加载动态数据
+  
   loadMoments: function() {
-    if (!this.data.hasMore || this.data.loading) return;
+    // 防止重复加载或不需要加载
+    // if (!this.data.hasMore || this.data.loading) return;
     
     this.setData({
       loading: true
     });
     
     wx.request({
-      url: app.globalData.apiBaseUrl + '/api/dating/moments',
+      url: app.globalData.apiBaseUrl + '/moments',
       method: 'GET',
+      data: {
+        page: this.data.page,
+        size: this.data.pageSize
+      },
       header: {
         'Authorization': 'Bearer ' + wx.getStorageSync('token')
       },
       success: res => {
-        if (res.data.success) {
+        console.log('动态数据请求成功，响应数据:', res.data);
+        if (res.data.code === "200") {
           let newMoments = res.data.data;
+          
+          // 避免重复数据
+          if (newMoments && newMoments.length > 0) {
+            // 过滤掉已经存在的动态
+            const existingIds = this.data.moments.map(item => item.id);
+            newMoments = newMoments.filter(item => !existingIds.includes(item.id));
+          }
+          
           // 处理图片数据和时间格式化
           newMoments.forEach(item => {
-            if (item.images) {
-              item.images = item.images.split(',');
+            // 处理images字段，如果imageUrls是JSON字符串，解析它
+            if (item.imageUrls) {
+              try {
+                // 尝试解析JSON字符串
+                const parsedImages = JSON.parse(item.imageUrls);
+                if (Array.isArray(parsedImages)) {
+                  item.images = parsedImages;
+                } else {
+                  // 如果不是数组，尝试用逗号分割
+                  item.images = item.imageUrls.split(',');
+                }
+              } catch (e) {
+                // 如果解析失败，可能是普通的逗号分隔字符串
+                item.images = item.imageUrls.split(',');
+              }
             } else {
               item.images = [];
             }
             
+            // 格式化时间
+            const createDate = new Date(item.createTime);
+            item.formattedTime = createDate.getFullYear() + '-' + 
+                                (createDate.getMonth() + 1) + '-' + 
+                                createDate.getDate();
+            
             // 加载每个动态的评论（仅加载前3条）
-            this.loadComments(item.momentId, 3);
+            if (item.id) {
+              this.loadComments(item.id, 3);
+            }
           });
           
           this.setData({
@@ -63,7 +99,8 @@ Page({
           });
         } else {
           this.setData({
-            loading: false
+            loading: false,
+            hasMore: false
           });
           wx.showToast({
             title: '加载失败',
@@ -71,50 +108,65 @@ Page({
           });
         }
       },
-      fail: () => {
-        // 模拟数据
-        const newMoments = [];
-        // ... 模拟数据保持不变 ...
-        
-        // 为模拟数据添加评论
-        newMoments.forEach(item => {
-          // 模拟评论数据
-          item.comments = item.comments || [];
-          if (item.comments.length > 3) {
-            item.comments = item.comments.slice(0, 3);
+      fail: (error) => {
+        console.error('请求失败，详细错误:', error);
+        // 测试后端连接
+        wx.request({
+          url: app.globalData.apiBaseUrl + '/ping',
+          method: 'GET',
+          success: (pingRes) => {
+            console.log('Ping测试成功:', pingRes.data);
+          },
+          fail: (pingError) => {
+            console.error('Ping测试失败，后端可能不可用:', pingError);
           }
         });
         
         this.setData({
-          moments: [...this.data.moments, ...newMoments],
-          loading: false,
-          page: this.data.page + 1,
-          hasMore: this.data.page < 3 // 模拟3页数据
+          loading: false
         });
+        wx.showToast({
+          title: '网络错误',
+          icon: 'none'
+        });
+      },
+      complete: () => {
+        console.log('请求完成');
       }
     });
   },
 
   // 加载动态的评论
   loadComments: function(momentId, limit) {
+    // 检查该动态是否已有评论
+    const momentsData = this.data.moments;
+    const index = momentsData.findIndex(m => m.id === momentId);
+    
+    // 如果已有评论或正在加载，跳过
+    if (index !== -1 && momentsData[index].comments) {
+      return;
+    }
+    
     wx.request({
-      url: app.globalData.apiBaseUrl + '/api/dating/moments/' + momentId + '/comments',
+      url: app.globalData.apiBaseUrl + '/moments/' + momentId + '/comments',
       method: 'GET',
       header: {
         'Authorization': 'Bearer ' + wx.getStorageSync('token')
       },
       success: res => {
-        if (res.data.success) {
-          let comments = res.data.data;
+        if (res.data.code === "200") {
+          let comments = res.data.data || [];
           if (limit && comments.length > limit) {
             comments = comments.slice(0, limit);
           }
           
           // 更新对应动态的评论
           const momentsData = this.data.moments;
-          const index = momentsData.findIndex(m => m.momentId === momentId);
+          const index = momentsData.findIndex(m => m.id === momentId);
           
           if (index !== -1) {
+            // 设置评论加载状态
+            momentsData[index].commentsLoaded = true;
             momentsData[index].comments = comments;
             this.setData({
               moments: momentsData
@@ -123,27 +175,38 @@ Page({
         }
       },
       fail: () => {
-        // 模拟错误处理，实际环境应该有更好的处理方式
-        console.log('获取评论失败');
+        console.log('获取评论失败，动态ID:', momentId);
       }
     });
   },
 
   // 下拉刷新
   onPullDownRefresh: function() {
+    // 重置状态，清空数据
     this.setData({
       moments: [],
       page: 1,
-      hasMore: true
-    })
+      hasMore: true,
+      loading: false
+    });
     
-    this.loadMoments()
-    wx.stopPullDownRefresh()
+    // 重新加载第一页数据
+    this.loadMoments();
+    wx.stopPullDownRefresh();
   },
 
   // 上拉加载更多
   onReachBottom: function() {
-    this.loadMoments()
+    // 如果还有更多数据且当前不在加载中，则加载下一页
+    if (this.data.hasMore && !this.data.loading) {
+      this.loadMoments();
+    } else if (!this.data.hasMore) {
+      wx.showToast({
+        title: '没有更多内容了',
+        icon: 'none',
+        duration: 1500
+      });
+    }
   },
 
   // 点赞动态
@@ -168,8 +231,10 @@ Page({
     
     // 发送请求
     wx.request({
-      url: app.globalData.apiBaseUrl + '/moments/' + momentId + '/like',
-      method: isLiked ? 'DELETE' : 'POST',
+      url: isLiked 
+        ? app.globalData.apiBaseUrl + '/moments/unlike/' + momentId
+        : app.globalData.apiBaseUrl + '/moments/like/' + momentId,
+      method: 'POST',
       header: {
         'Authorization': 'Bearer ' + wx.getStorageSync('token')
       }
