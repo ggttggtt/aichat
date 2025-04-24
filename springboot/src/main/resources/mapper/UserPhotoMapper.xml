@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.springboot.mapper.UserPhotoMapper">
+    <resultMap id="BaseResultMap" type="com.example.springboot.entity.UserPhoto">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="photo_url" property="photoUrl" jdbcType="VARCHAR"/>
+        <result column="order_num" property="orderNum" jdbcType="INTEGER"/>
+        <result column="is_avatar" property="isAvatar" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, user_id, photo_url, order_num, is_avatar, create_time, update_time
+    </sql>
+
+    <!-- 根据用户ID查询照片列表 -->
+    <select id="getByUserId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_photo
+        WHERE user_id = #{userId}
+        ORDER BY order_num ASC, id ASC
+    </select>
+    
+    <!-- 插入照片记录 -->
+    <insert id="insert" parameterType="com.example.springboot.entity.UserPhoto" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_photo (user_id, photo_url, order_num, is_avatar, create_time, update_time)
+        VALUES (#{userId}, #{photoUrl}, #{orderNum}, #{isAvatar}, NOW(), NOW())
+    </insert>
+    
+    <!-- 更新照片信息 -->
+    <update id="update" parameterType="com.example.springboot.entity.UserPhoto">
+        UPDATE user_photo
+        <set>
+            <if test="photoUrl != null">photo_url = #{photoUrl},</if>
+            <if test="orderNum != null">order_num = #{orderNum},</if>
+            <if test="isAvatar != null">is_avatar = #{isAvatar},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 删除照片 -->
+    <delete id="deleteById">
+        DELETE FROM user_photo WHERE id = #{id}
+    </delete>
+    
+    <!-- 根据用户ID删除所有照片 -->
+    <delete id="deleteByUserId">
+        DELETE FROM user_photo WHERE user_id = #{userId}
+    </delete>
+</mapper> 

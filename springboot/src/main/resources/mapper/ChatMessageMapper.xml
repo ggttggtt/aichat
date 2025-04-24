@@ -1,57 +1,67 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.example.springboot.mapper.ChatMessageMapper">
-
-    <resultMap id="ChatMessageResultMap" type="com.example.springboot.entity.ChatMessage">
-        <id property="id" column="id"/>
-        <result property="matchId" column="match_id"/>
-        <result property="senderId" column="sender_id"/>
-        <result property="receiverId" column="receiver_id"/>
-        <result property="content" column="content"/>
-        <result property="sendTime" column="send_time"/>
-        <result property="isRead" column="is_read"/>
+    <resultMap id="BaseResultMap" type="com.example.springboot.entity.ChatMessage">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="match_id" property="matchId" jdbcType="INTEGER"/>
+        <result column="sender_id" property="senderId" jdbcType="INTEGER"/>
+        <result column="receiver_id" property="receiverId" jdbcType="INTEGER"/>
+        <result column="content" property="content" jdbcType="VARCHAR"/>
+        <result column="message_type" property="messageType" jdbcType="INTEGER"/>
+        <result column="is_read" property="isRead" jdbcType="INTEGER"/>
+        <result column="send_time" property="sendTime" jdbcType="TIMESTAMP"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
-    <select id="getById" resultMap="ChatMessageResultMap">
-        SELECT *
-        FROM chat_message
-        WHERE id = #{id}
-    </select>
+    <sql id="Base_Column_List">
+        id, match_id, sender_id, receiver_id, content, message_type, is_read, send_time, create_time, update_time
+    </sql>
 
-    <select id="getMessagesByMatchId" resultMap="ChatMessageResultMap">
-        SELECT *
-        FROM chat_message
-        WHERE match_id = #{matchId}
-        ORDER BY send_time ASC
-    </select>
-
-    <select id="getLastMessageByMatchId" resultMap="ChatMessageResultMap">
-        SELECT *
+    <!-- 获取最后一条消息 -->
+    <select id="getLastMessageByMatchId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
         FROM chat_message
         WHERE match_id = #{matchId}
         ORDER BY send_time DESC
         LIMIT 1
     </select>
-
-    <select id="getUnreadCount" resultType="int">
+    
+    <!-- 获取未读消息数 -->
+    <select id="getUnreadCount" resultType="java.lang.Integer">
         SELECT COUNT(*)
         FROM chat_message
         WHERE match_id = #{matchId}
-          AND receiver_id = #{receiverId}
-          AND is_read = 0
+        AND receiver_id = #{userId}
+        AND is_read = 0
     </select>
-
-    <insert id="insert" parameterType="com.example.springboot.entity.ChatMessage" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO chat_message (match_id, sender_id, receiver_id, content, send_time, is_read)
-        VALUES (#{matchId}, #{senderId}, #{receiverId}, #{content}, NOW(), 0)
-    </insert>
-
-    <update id="markAsRead">
-        UPDATE chat_message
-        SET is_read = 1
+    
+    <!-- 根据匹配ID获取聊天记录 -->
+    <select id="getMessagesByMatchId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM chat_message
         WHERE match_id = #{matchId}
-          AND receiver_id = #{receiverId}
-          AND is_read = 0
+        ORDER BY send_time ASC
+    </select>
+    
+    <!-- 插入消息 -->
+    <insert id="insert" parameterType="com.example.springboot.entity.ChatMessage" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO chat_message (
+            match_id, sender_id, receiver_id, content, message_type, is_read, send_time, create_time, update_time
+        )
+        VALUES (
+            #{matchId}, #{senderId}, #{receiverId}, #{content}, #{messageType}, #{isRead}, #{sendTime}, NOW(), NOW()
+        )
+    </insert>
+    
+    <!-- 更新消息已读状态 -->
+    <update id="updateReadStatus">
+        UPDATE chat_message
+        SET is_read = 1, update_time = NOW()
+        WHERE match_id = #{matchId}
+        AND receiver_id = #{userId}
+        AND is_read = 0
     </update>
-
 </mapper> 

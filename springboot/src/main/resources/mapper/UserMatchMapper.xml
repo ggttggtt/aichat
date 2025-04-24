@@ -1,42 +1,60 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.example.springboot.mapper.UserMatchMapper">
-
-    <resultMap id="UserMatchResultMap" type="com.example.springboot.entity.UserMatch">
-        <id property="id" column="id"/>
-        <result property="userId1" column="user_id1"/>
-        <result property="userId2" column="user_id2"/>
-        <result property="matchTime" column="match_time"/>
+    <resultMap id="BaseResultMap" type="com.example.springboot.entity.UserMatch">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="matched_user_id" property="matchedUserId" jdbcType="INTEGER"/>
+        <result column="match_time" property="matchTime" jdbcType="TIMESTAMP"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
-    <select id="getById" resultMap="UserMatchResultMap">
-        SELECT *
+    <sql id="Base_Column_List">
+        id, user_id, matched_user_id, match_time, create_time, update_time
+    </sql>
+
+    <!-- 根据用户ID查询匹配列表 -->
+    <select id="getMatchesByUserId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_match
+        WHERE user_id = #{userId} OR matched_user_id = #{userId}
+    </select>
+    
+    <!-- 根据ID查询匹配信息 -->
+    <select id="getById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
         FROM user_match
         WHERE id = #{id}
     </select>
-
-    <select id="getByUserIds" resultMap="UserMatchResultMap">
-        SELECT *
+    
+    <!-- 检查两个用户是否匹配 -->
+    <select id="checkMatch" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
         FROM user_match
-        WHERE (user_id1 = #{userId1} AND user_id2 = #{userId2})
-           OR (user_id1 = #{userId2} AND user_id2 = #{userId1})
+        WHERE (user_id = #{userId} AND matched_user_id = #{matchedUserId})
+           OR (user_id = #{matchedUserId} AND matched_user_id = #{userId})
         LIMIT 1
     </select>
-
-    <select id="getMatchesByUserId" resultMap="UserMatchResultMap">
-        SELECT *
-        FROM user_match
-        WHERE user_id1 = #{userId} OR user_id2 = #{userId}
-        ORDER BY match_time DESC
-    </select>
-
+    
+    <!-- 插入匹配记录 -->
     <insert id="insert" parameterType="com.example.springboot.entity.UserMatch" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO user_match (user_id1, user_id2, match_time)
-        VALUES (#{userId1}, #{userId2}, NOW())
+        INSERT INTO user_match (user_id, matched_user_id, match_time, create_time, update_time)
+        VALUES (#{userId}, #{matchedUserId}, #{matchTime}, NOW(), NOW())
     </insert>
-
-    <delete id="delete">
+    
+    <!-- 删除匹配 -->
+    <delete id="deleteById">
         DELETE FROM user_match WHERE id = #{id}
     </delete>
-
+    
+    <!-- 删除用户之间的匹配 -->
+    <delete id="deleteMatch">
+        DELETE FROM user_match 
+        WHERE (user_id = #{userId} AND matched_user_id = #{matchedUserId})
+           OR (user_id = #{matchedUserId} AND matched_user_id = #{userId})
+    </delete>
 </mapper> 

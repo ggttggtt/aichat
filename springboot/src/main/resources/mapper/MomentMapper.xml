@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.springboot.mapper.MomentMapper">
+    <resultMap id="BaseResultMap" type="com.example.springboot.entity.Moment">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="content" property="content" jdbcType="VARCHAR"/>
+        <result column="image_urls" property="imageUrls" jdbcType="VARCHAR"/>
+        <result column="location" property="location" jdbcType="VARCHAR"/>
+        <result column="visibility" property="visibility" jdbcType="INTEGER"/>
+        <result column="like_count" property="likeCount" jdbcType="INTEGER"/>
+        <result column="comment_count" property="commentCount" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, user_id, content, image_urls, location, visibility, like_count, comment_count, create_time, update_time
+    </sql>
+
+    <!-- 获取动态列表 -->
+    <select id="listMoments" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM moment
+        WHERE visibility = 0 OR (visibility = 1 AND user_id = #{userId})
+        ORDER BY create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+    
+    <!-- 获取好友的动态列表 -->
+    <select id="listFriendMoments" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM moment m
+        WHERE (m.visibility = 0 OR (m.visibility = 1 AND m.user_id = #{userId}))
+        AND (
+            m.user_id IN (
+                SELECT matched_user_id FROM user_match WHERE user_id = #{userId}
+                UNION
+                SELECT user_id FROM user_match WHERE matched_user_id = #{userId}
+            )
+            OR m.user_id = #{userId}
+        )
+        ORDER BY m.create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+    
+    <!-- 获取用户的动态列表 -->
+    <select id="listUserMoments" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM moment
+        WHERE user_id = #{userId}
+        AND (
+            visibility = 0 
+            OR (visibility = 1 AND user_id = #{visitorId})
+        )
+        ORDER BY create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+    
+    <!-- 根据ID获取动态 -->
+    <select id="getMomentById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM moment
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 插入动态 -->
+    <insert id="insert" parameterType="com.example.springboot.entity.Moment" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO moment (
+            user_id, content, image_urls, location, visibility, 
+            like_count, comment_count, create_time, update_time
+        )
+        VALUES (
+            #{userId}, #{content}, #{imageUrls}, #{location}, #{visibility}, 
+            0, 0, NOW(), NOW()
+        )
+    </insert>
+    
+    <!-- 更新动态 -->
+    <update id="update" parameterType="com.example.springboot.entity.Moment">
+        UPDATE moment
+        <set>
+            <if test="content != null">content = #{content},</if>
+            <if test="imageUrls != null">image_urls = #{imageUrls},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="visibility != null">visibility = #{visibility},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id} AND user_id = #{userId}
+    </update>
+    
+    <!-- 删除动态 -->
+    <delete id="delete">
+        DELETE FROM moment WHERE id = #{id}
+    </delete>
+    
+    <!-- 增加点赞数 -->
+    <update id="increaseLikeCount">
+        UPDATE moment
+        SET like_count = like_count + 1
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 减少点赞数 -->
+    <update id="decreaseLikeCount">
+        UPDATE moment
+        SET like_count = CASE WHEN like_count > 0 THEN like_count - 1 ELSE 0 END
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 增加评论数 -->
+    <update id="increaseCommentCount">
+        UPDATE moment
+        SET comment_count = comment_count + 1
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 减少评论数 -->
+    <update id="decreaseCommentCount">
+        UPDATE moment
+        SET comment_count = CASE WHEN comment_count > 0 THEN comment_count - 1 ELSE 0 END
+        WHERE id = #{id}
+    </update>
+</mapper> 

@@ -10,6 +10,8 @@ public class UserMatch {
     private Integer userId;
     private Integer matchedUserId;
     private Date matchTime;
+    private Date createTime;
+    private Date updateTime;
     
     // 可能需要的用户信息
     private UserProfile matchedUserProfile;
@@ -59,6 +61,22 @@ public class UserMatch {
 
     public void setMatchTime(Date matchTime) {
         this.matchTime = matchTime;
+    }
+    
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
     }
 
     public UserProfile getMatchedUserProfile() {

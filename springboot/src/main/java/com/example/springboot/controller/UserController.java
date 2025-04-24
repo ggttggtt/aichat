@@ -236,5 +236,19 @@ public class UserController {
         return Result.success(success);
     }
 
+    /**
+     * 创建或更新用户资料
+     * @param userProfile 用户资料
+     * @return 更新结果
+     */
+    @PostMapping("/profile")
+    public Result createOrUpdateUserProfile(@RequestBody UserProfile userProfile) {
+        Integer currentUserId = getCurrentUserId();
+        // 确保不能修改其他用户的资料
+        userProfile.setId(currentUserId);
+        boolean success = userService.updateUserProfile(userProfile);
+        return Result.success(success);
+    }
+
 }
 
