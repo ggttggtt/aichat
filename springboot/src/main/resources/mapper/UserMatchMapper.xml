@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.UserMatchMapper">
+
+    <resultMap id="UserMatchResultMap" type="com.example.springboot.entity.UserMatch">
+        <id property="id" column="id"/>
+        <result property="userId1" column="user_id1"/>
+        <result property="userId2" column="user_id2"/>
+        <result property="matchTime" column="match_time"/>
+    </resultMap>
+
+    <select id="getById" resultMap="UserMatchResultMap">
+        SELECT *
+        FROM user_match
+        WHERE id = #{id}
+    </select>
+
+    <select id="getByUserIds" resultMap="UserMatchResultMap">
+        SELECT *
+        FROM user_match
+        WHERE (user_id1 = #{userId1} AND user_id2 = #{userId2})
+           OR (user_id1 = #{userId2} AND user_id2 = #{userId1})
+        LIMIT 1
+    </select>
+
+    <select id="getMatchesByUserId" resultMap="UserMatchResultMap">
+        SELECT *
+        FROM user_match
+        WHERE user_id1 = #{userId} OR user_id2 = #{userId}
+        ORDER BY match_time DESC
+    </select>
+
+    <insert id="insert" parameterType="com.example.springboot.entity.UserMatch" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_match (user_id1, user_id2, match_time)
+        VALUES (#{userId1}, #{userId2}, NOW())
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM user_match WHERE id = #{id}
+    </delete>
+
+</mapper> 
