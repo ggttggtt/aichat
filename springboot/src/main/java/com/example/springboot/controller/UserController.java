@@ -211,5 +211,30 @@ public class UserController {
         return Result.success(matches);
     }
 
+    /**
+     * 获取用户详情
+     * @param id 用户ID
+     * @return 用户详情
+     */
+    @GetMapping("/{id}")
+    public Result getUserDetail(@PathVariable Integer id) {
+        UserProfile userProfile = userService.getUserProfileDetail(id);
+        return Result.success(userProfile);
+    }
+
+    /**
+     * 更新用户资料
+     * @param userProfile 用户资料
+     * @return 更新结果
+     */
+    @PutMapping("/profile")
+    public Result updateUserProfile(@RequestBody UserProfile userProfile) {
+        Integer currentUserId = getCurrentUserId();
+        // 确保不能修改其他用户的资料
+        userProfile.setId(currentUserId);
+        boolean success = userService.updateUserProfile(userProfile);
+        return Result.success(success);
+    }
+
 }
 

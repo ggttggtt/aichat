@@ -39,4 +39,18 @@ public interface IUserService extends IService<User> {
      * @return 匹配列表，包含匹配用户信息和最后一条消息等
      */
     List<UserMatch> getMatches(Integer userId);
+
+    /**
+     * 获取用户详细资料
+     * @param userId 用户ID
+     * @return 详细用户资料，包含照片和标签等
+     */
+    UserProfile getUserProfileDetail(Integer userId);
+
+    /**
+     * 更新用户资料
+     * @param userProfile 用户资料
+     * @return 是否更新成功
+     */
+    boolean updateUserProfile(UserProfile userProfile);
 }

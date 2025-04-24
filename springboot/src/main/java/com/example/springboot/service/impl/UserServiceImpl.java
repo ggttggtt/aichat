@@ -283,28 +283,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (matches != null && !matches.isEmpty()) {
             for (UserMatch match : matches) {
                 // 2. 确定匹配对方的用户ID
-                Integer matchedUserId = match.getUserId1().equals(userId) ? match.getUserId2() : match.getUserId1();
+                Integer matchedUserId = match.getUserId().equals(userId) ? match.getMatchedUserId() : match.getUserId();
 
                 // 3. 获取匹配对方的用户 Profile 信息
                 UserProfile matchedUserProfile = userProfileMapper.getById(matchedUserId);
                 if (matchedUserProfile != null) {
                      // 填充基本信息
-                    match.setMatchedUser(matchedUserProfile);
+                    match.setMatchedUserProfile(matchedUserProfile);
                     // ... (填充照片的注释保持不变)
                 } else {
                     LOG.warn("找不到用户 {} 的匹配对象 {} 的 Profile 信息", userId, matchedUserId);
-                    // match.setMatchedUser(null); 
+                    // match.setMatchedUserProfile(null); 
                 }
 
                 // 4. 获取该匹配的最后一条聊天消息
                 ChatMessage lastMessage = chatMessageMapper.getLastMessageByMatchId(match.getId());
-                 if (lastMessage != null) {
-                     // 格式化时间戳
-                     lastMessage.setFormattedTime(formatTimestamp(lastMessage.getSendTime()));
-                     match.setLastMessage(lastMessage);
-                 } else {
-                     match.setLastMessage(null); 
-                 }
+                if (lastMessage != null) {
+                    // 格式化时间戳
+                    lastMessage.setFormattedTime(formatTimestamp(lastMessage.getSendTime()));
+                    match.setLastMessage(lastMessage);
+                } else {
+                    match.setLastMessage(null);
+                }
 
                 // 5. 获取当前用户在该匹配中的未读消息数
                 int unreadCount = chatMessageMapper.getUnreadCount(match.getId(), userId);
@@ -353,5 +353,125 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                  return new SimpleDateFormat("yyyy-MM-dd HH:mm").format(timestamp);
              }
         }
+    }
+
+    /**
+     * 获取用户详细资料，包括照片和标签
+     */
+    @Override
+    public UserProfile getUserProfileDetail(Integer userId) {
+        UserProfile userProfile = userProfileMapper.getById(userId);
+        if (userProfile == null) {
+            return null; // 或者抛出异常，取决于业务需求
+        }
+        
+        // 获取用户照片列表
+        List<UserPhoto> photos = userPhotoMapper.getByUserId(userId);
+        if (photos != null && !photos.isEmpty()) {
+            userProfile.setPhotos(photos.stream()
+                                      .sorted((p1, p2) -> Integer.compare(p1.getOrderNum() != null ? p1.getOrderNum() : 99, 
+                                                                          p2.getOrderNum() != null ? p2.getOrderNum() : 99))
+                                      .map(UserPhoto::getPhotoUrl)
+                                      .collect(Collectors.toList()));
+            // 确保 avatarUrl 不为空
+            if (userProfile.getAvatarUrl() == null && !userProfile.getPhotos().isEmpty()) {
+                userProfile.setAvatarUrl(userProfile.getPhotos().get(0));
+            }
+        } else {
+            userProfile.setPhotos(Collections.emptyList());
+        }
+        
+        // 获取用户标签列表
+        List<UserTag> tags = userTagMapper.getByUserId(userId);
+        if (tags != null && !tags.isEmpty()) {
+            userProfile.setTags(tags.stream()
+                                    .map(UserTag::getTagName)
+                                    .collect(Collectors.toList()));
+        } else {
+            userProfile.setTags(Collections.emptyList());
+        }
+        
+        // 计算年龄（如果有生日信息）
+        if (userProfile.getBirthdate() != null) {
+            try {
+                LocalDate birthDate = userProfile.getBirthdate().toInstant()
+                                               .atZone(ZoneId.systemDefault())
+                                               .toLocalDate();
+                userProfile.setAge(Period.between(birthDate, LocalDate.now()).getYears());
+            } catch (Exception e) {
+                LOG.error("计算用户 {} 年龄时出错", userId, e);
+                userProfile.setAge(null);
+            }
+        }
+        
+        return userProfile;
+    }
+
+    /**
+     * 更新用户资料
+     */
+    @Override
+    public boolean updateUserProfile(UserProfile userProfile) {
+        if (userProfile == null || userProfile.getId() == null) {
+            LOG.error("传入的用户资料为空或缺少ID");
+            return false;
+        }
+        
+        // 防止更新敏感字段
+        userProfile.setOpenId(null); // 防止修改openId
+        userProfile.setRegisterTime(null); // 防止修改注册时间
+        
+        // 1. 更新基本资料
+        int result = userProfileMapper.update(userProfile);
+        if (result <= 0) {
+            LOG.error("更新用户 {} 基本资料失败", userProfile.getId());
+            return false;
+        }
+        
+        // 2. 更新标签（如果提供了）
+        if (userProfile.getTags() != null && !userProfile.getTags().isEmpty()) {
+            try {
+                // 删除旧标签
+                userTagMapper.deleteByUserId(userProfile.getId());
+                
+                // 插入新标签
+                List<UserTag> tags = userProfile.getTags().stream()
+                        .map(tagName -> {
+                            UserTag tag = new UserTag();
+                            tag.setUserId(userProfile.getId());
+                            tag.setTagName(tagName);
+                            return tag;
+                        })
+                        .collect(Collectors.toList());
+                
+                if (!tags.isEmpty()) {
+                    userTagMapper.batchInsert(tags);
+                }
+            } catch (Exception e) {
+                LOG.error("更新用户 {} 标签失败", userProfile.getId(), e);
+                // 这里可以选择继续执行或者返回失败，取决于业务需求
+                // return false;
+            }
+        }
+        
+        // 3. 更新照片（照片通常通过单独的文件上传接口处理，这里不实现）
+        // 如果需要处理照片顺序或删除照片的逻辑，可以在这里添加
+        
+        // 4. 如果是首次完善资料，将isProfileCompleted更新为true
+        if (Boolean.TRUE.equals(userProfile.getIsProfileCompleted())) {
+            // 确认是否首次完善资料
+            UserProfile existingProfile = userProfileMapper.getById(userProfile.getId());
+            if (existingProfile != null && !Boolean.TRUE.equals(existingProfile.getIsProfileCompleted())) {
+                // 更新完成状态
+                UserProfile updateStatus = new UserProfile();
+                updateStatus.setId(userProfile.getId());
+                updateStatus.setIsProfileCompleted(true);
+                userProfileMapper.update(updateStatus);
+                
+                // 这里还可以添加首次完善资料的奖励逻辑等
+            }
+        }
+        
+        return true;
     }
 }

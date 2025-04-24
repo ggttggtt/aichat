@@ -4,9 +4,9 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/aichat?severTimezone=GMT%2B8
+    url: jdbc:mysql://47.92.165.44:3306/aichat?severTimezone=GMT%2B8
     username: root
-    password: 123456
+    password: sicnu@RPZ2023.com
   mail:
     host: smtp.qq.com
     username: 3165114700@qq.com
@@ -37,7 +37,10 @@ files:
 aliyun:
   oss:
     endpoint: oss-cn-chengdu.aliyuncs.com
-    accessKeyId: LTAI5tByd3rGfLESD3oSoZAZ
-    secret: C5xzybLc7Ms7Sr4Ul0Zfc3TPZw2N80
-    bucket: sdy-upload-file
+    accessKeyId: LTAI5tPZZ3ECy7rotchRwHRA
+    secret: prmxp1G1jQUmas6lgj0QFQ8WOpxiFy
+    bucket: yanxuesi
+    url: https://yanxuesi.oss-cn-chengdu.aliyuncs.com
+    filehost: aichat
+
 
