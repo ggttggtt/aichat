@@ -1,0 +1,46 @@
+server:
+  port: 8888
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://47.92.165.44:3306/aichat?severTimezone=GMT%2B8
+    username: root
+    password: sicnu@RPZ2023.com
+  mail:
+    host: smtp.qq.com
+    username: 3165114700@qq.com
+    password: lngbhaovvvjydfbj
+    properties:
+      mail:
+        smtp:
+          ssl:
+            enable: true
+    default-encoding: UTF-8
+  jpa:
+    hibernate:
+      #更新或创建数据表结构
+      ddl-auto: update
+    #控制台打印SQL
+    show-sql: true
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+files:
+  upload:
+    path: D:/code/aichat/files/
+
+
+aliyun:
+  oss:
+    endpoint: oss-cn-chengdu.aliyuncs.com
+    accessKeyId: LTAI5tPZZ3ECy7rotchRwHRA
+    secret: prmxp1G1jQUmas6lgj0QFQ8WOpxiFy
+    bucket: yanxuesi
+    url: https://yanxuesi.oss-cn-chengdu.aliyuncs.com
+    filehost: aichat
+
+
