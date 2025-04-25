@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>PPTXjs - Meshesha</title>
+
+<link rel="stylesheet" href="./css/pptxjs.css">
+<link rel="stylesheet" href="./css/nv.d3.min.css">
+
+<script type="text/javascript" src="./js/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="./js/jszip.min.js"></script>
+<script type="text/javascript" src="./js/filereader.js"></script>
+<script type="text/javascript" src="./js/d3.min.js"></script>
+<script type="text/javascript" src="./js/nv.d3.min.js"></script>
+<script type="text/javascript" src="./js/pptxjs.js"></script>
+<script type="text/javascript" src="./js/divs2slides.js"></script>
+
+<script type="text/javascript" src="./js/jquery.fullscreen-min.js"></script>
+
+<script type="text/javascript">
+    $(function() {
+		var oldWidth, oldMargin ,isFullscreenMode=false;
+		$("#fullscreen-btn").on("click", function(){
+
+			if(!isFullscreenMode){
+				oldWidth = $("#result .slide").css("width");
+				oldMargin = $("#result .slide").css("margin");
+				$("#result .slide").css({
+					"width": "99%",
+					"margin": "0 auto"
+				})
+				$("#result").toggleFullScreen();
+				isFullscreenMode = true;
+			}else{
+				$("#result .slide").css({
+					"width": oldWidth,
+					"margin": oldMargin
+				})
+				$("#result").toggleFullScreen();
+				isFullscreenMode = false;
+			}
+		});
+		$(document).bind("fullscreenchange", function() {
+			if(!$(document).fullScreen()){
+				$("#result .slide").css({
+					"width": oldWidth,
+  					"margin": oldMargin
+				})
+			}
+		});
+    });
+</script>
+<style>
+	html, body { margin: 0; padding: 0; }
+	#warper { margin-right: 200px; margin-left: 100px; width: 900px; }
+</style>
+</head>
+<body>
+	<div id="warper">
+		<!-- <input id="uploadFileInput" type="file" /> -->
+		<!-- <br><br> -->
+		<div id="container">
+			<!-- <input id="fullscreen-btn" type="button" value="Fullscreen" /> -->
+			<!-- <br> -->
+            <a target="_blank" href="http://view.officeapps.live.com/op/view.aspx?src=https://sdy-upload-file.oss-cn-chengdu.aliyuncs.com/%E6%9C%8D%E5%8A%A1%E4%BF%9D%E6%8A%A4%E5%92%8C%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1.pptx">点击查看ppt</a>
+			<div  id="result"></div>
+		</div>
+	</div>
+<script>
+$("#result").pptxToHtml({
+	pptxFileUrl: "http://47.92.165.44:9090/file/268239e8a8d5409094439267b4c28eea.pptx",
+	fileInputId: "uploadFileInput",
+	slideMode: false,
+	keyBoardShortCut: false,
+	slideModeConfig: {  //on slide mode (slideMode: true)
+	    first: 1,
+	    nav: false, /** true,false : show or not nav buttons*/
+	    navTxtColor: "white", /** color */
+	    navNextTxt:"&#8250;", //">"
+	    navPrevTxt: "&#8249;", //"<"
+	    showPlayPauseBtn: false,/** true,false */
+	    keyBoardShortCut: false, /** true,false */
+	    showSlideNum: false, /** true,false */
+	    showTotalSlideNum: false, /** true,false */
+	    autoSlide: false, /** false or seconds (the pause time between slides) , F8 to active(keyBoardShortCut: true) */
+	    randomAutoSlide: false, /** true,false ,autoSlide:true */
+	    loop: false,  /** true,false */
+	    background: "black", /** false or color*/
+	    transition: "default", /** transition type: "slid","fade","default","random" , to show transition efects :transitionTime > 0.5 */
+	    transitionTime: 1 /** transition time in seconds */
+	}
+});
+</script>
+
+</body>
+</html>
