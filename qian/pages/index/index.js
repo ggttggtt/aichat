@@ -57,7 +57,7 @@ Page({
             
             // 发送 code 到后台换取 openId, sessionKey, unionId
             wx.request({
-              url: app.globalData.apiBaseUrl + '/login',
+              url: app.globalData.apiBaseUrl + '/wx/login',
               method: 'POST',
               data: {
                 code: res.code,

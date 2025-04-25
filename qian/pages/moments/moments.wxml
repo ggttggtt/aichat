@@ -8,10 +8,10 @@
     <view class="moment-item" wx:for="{{moments}}" wx:key="id">
       <!-- 用户信息 -->
       <view class="user-info" bindtap="viewUserDetail" data-id="{{item.userId}}">
-        <image src="{{item.userAvatar}}" class="avatar"></image>
+        <image src="{{item.userProfile.avatarUrl || '/images/default_avatar.png'}}" class="avatar"></image>
         <view class="user-name-time">
-          <text class="user-name">{{item.userName}}</text>
-          <text class="post-time">{{item.createTime}}</text>
+          <text class="user-name">{{item.userProfile.nickname}}</text>
+          <text class="post-time">{{item.formattedTime}}</text>
         </view>
       </view>
 
@@ -85,44 +85,6 @@
         </view>
         
         <view class="view-more" wx:if="{{item.commentCount > 3}}" bindtap="viewMomentDetail" data-id="{{item.id}}">
-          查看全部{{item.commentCount}}条评论
-        </view>
-      </view>
-      
-      <!-- 点赞评论区域 -->
-      <view class="interaction-bar">
-        <view class="like-comment-count">
-          <view class="count-item">
-            <text>点赞 {{item.likeCount}}</text>
-          </view>
-          <view class="count-item">
-            <text>评论 {{item.commentCount}}</text>
-          </view>
-        </view>
-        <view class="action-buttons">
-          <view class="action-button {{item.isLiked ? 'liked' : ''}}" bindtap="likeMoment" data-id="{{item.id}}">
-            <image src="/images/{{item.isLiked ? 'like_filled' : 'like'}}.png" class="action-icon"></image>
-            <text>点赞</text>
-          </view>
-          <view class="action-button" bindtap="showCommentInput" data-id="{{item.id}}">
-            <image src="/images/comment.png" class="action-icon"></image>
-            <text>评论</text>
-          </view>
-        </view>
-      </view>
-
-      <!-- 评论区域 -->
-      <view class="comments-section" wx:if="{{item.comments.length > 0}}">
-        <view 
-          class="comment-item" 
-          wx:for="{{item.comments}}" 
-          wx:for-item="comment" 
-          wx:key="id">
-          <text class="comment-user">{{comment.userName}}：</text>
-          <text class="comment-content">{{comment.content}}</text>
-        </view>
-        
-        <view class="view-more-comments" wx:if="{{item.commentCount > item.comments.length}}" bindtap="viewMomentDetail" data-id="{{item.id}}">
           查看全部{{item.commentCount}}条评论
         </view>
       </view>

@@ -148,7 +148,7 @@ Page({
       success: res => {
         wx.hideLoading();
         
-        if (res.data && res.data.code === "200") {
+        if (res.data.code === "200") {
           wx.showToast({
             title: '评论成功',
             icon: 'success'
@@ -163,7 +163,7 @@ Page({
           }, 1500);
         } else {
           wx.showToast({
-            title: res.data && res.data.msg ? res.data.msg : '评论失败',
+            title: res.data.msg || '评论失败',
             icon: 'none'
           });
         }
@@ -212,7 +212,7 @@ Page({
           
           const result = await new Promise((resolve, reject) => {
             wx.uploadFile({
-              url: app.globalData.apiBaseUrl + '/api/oss/upload',
+              url: app.globalData.apiBaseUrl + '/api/upload',
               filePath: this.data.images[i],
               name: 'file',
               formData: {
@@ -223,8 +223,8 @@ Page({
                 // 注意: uploadFile的返回是字符串，需要解析为JSON
                 try {
                   const data = JSON.parse(res.data);
-                  if (data.code === "200" && data.data && data.data.url) {
-                    resolve(data.data.url);
+                  if (data.code === "200" && data.data) {
+                    resolve(data.data);
                   } else {
                     console.error('图片上传接口返回错误:', data);
                     reject(new Error(data.msg || '上传失败'));

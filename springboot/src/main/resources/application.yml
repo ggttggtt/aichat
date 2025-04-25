@@ -43,4 +43,10 @@ aliyun:
     url: https://yanxuesi.oss-cn-chengdu.aliyuncs.com
     filehost: aichat
 
+# 添加微信小程序配置
+wx:
+  miniapp:
+    appid: wx7982c22d347bedbb # 小程序appId
+    secret: 56b87a1ff5535a4a17300cbb886f9262 # 小程序appSecret
+
 

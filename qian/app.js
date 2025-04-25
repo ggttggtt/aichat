@@ -11,6 +11,24 @@ App({
   },
   
   onLaunch: function() {
+    // 测试后端连接
+    console.log('小程序启动，测试后端连接:', this.globalData.apiBaseUrl);
+    wx.request({
+      url: this.globalData.apiBaseUrl + '/ping',
+      method: 'GET',
+      success: (res) => {
+        console.log('后端连接测试成功:', res.data);
+      },
+      fail: (error) => {
+        console.error('后端连接测试失败:', error);
+        wx.showToast({
+          title: '服务器连接失败',
+          icon: 'none',
+          duration: 2000
+        });
+      }
+    });
+    
     // 从本地存储中恢复数据
     this.globalData.token = wx.getStorageSync('token') || null
     this.globalData.userInfo = wx.getStorageSync('userInfo') || null

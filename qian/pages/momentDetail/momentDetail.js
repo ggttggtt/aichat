@@ -10,7 +10,8 @@ Page({
     replyToComment: null,
     replyTo: null,
     userInfo: null,
-    showEmojiPicker: false
+    showEmojiPicker: false,
+    inputFocus: false
   },
 
   onLoad: function(options) {
@@ -95,24 +96,25 @@ Page({
     })
   },
 
-  // 加载评论列表
+  // 加载评论
   loadComments: function() {
     wx.request({
-      url: app.globalData.apiBaseUrl + '/api/dating/moments/' + this.data.momentId + '/comments',
+      url: app.globalData.apiBaseUrl + '/moments/' + this.data.momentId + '/comments',
       method: 'GET',
       header: {
         'Authorization': 'Bearer ' + wx.getStorageSync('token')
       },
       success: res => {
-        if (res.data.success) {
+        if (res.data.code === "200") {
+          // 处理数据，将id映射为commentId
+          const comments = res.data.data.map(comment => ({
+            ...comment,
+            commentId: comment.id  // 添加commentId字段，映射自id
+          }));
+          
           this.setData({
-            comments: res.data.data
-          })
-        } else {
-          wx.showToast({
-            title: '获取评论失败',
-            icon: 'none'
-          })
+            comments: comments
+          });
         }
       },
       fail: () => {
@@ -207,20 +209,34 @@ Page({
   // 显示评论输入框
   showCommentInput: function() {
     this.setData({
-      commentFocus: true,
-      replyToComment: null,
-      commentContent: ''
+      replyToComment: '',
+      replyTo: '',
+      showEmojiPicker: false
     })
   },
 
   // 回复评论
   replyComment: function(e) {
-    const commentId = e.currentTarget.dataset.id;
-    const nickname = e.currentTarget.dataset.name;
+    const commentId = e.currentTarget.dataset.id || '';
+    const nickname = e.currentTarget.dataset.name || '';
     
     this.setData({
       replyToComment: commentId,
       replyTo: nickname,
+      showEmojiPicker: false
+    }, () => {
+      // 设置输入框焦点
+      this.setData({
+        inputFocus: true
+      });
+    });
+  },
+
+  // 取消回复
+  cancelReply: function() {
+    this.setData({
+      replyToComment: '',
+      replyTo: '',
       showEmojiPicker: false
     });
   },
@@ -245,18 +261,39 @@ Page({
     });
   },
   
+  // 输入框获取焦点
+  onInputFocus: function() {
+    // 如果不是通过回复按钮触发的焦点，清除回复相关状态
+    if (!this.data.inputFocus) {
+      this.cancelReply();
+    }
+    // 重置inputFocus状态，避免影响下次手动点击输入框
+    this.setData({
+      inputFocus: false
+    });
+  },
+  
+  // 输入框失去焦点
+  onInputBlur: function() {
+    // 可以选择是否在这里清除回复状态
+    // this.cancelReply();
+  },
+  
   // 添加评论
   addComment: function() {
-    if (!this.data.commentContent.trim()) {
+    const content = this.data.commentContent.trim();
+    if (!content) {
       wx.showToast({
-        title: '请输入评论内容',
+        title: '评论内容不能为空',
         icon: 'none'
       });
       return;
     }
     
+    const replyToComment = this.data.replyToComment || '';
+    
     wx.showLoading({
-      title: '发表评论中'
+      title: '发送中',
     });
     
     const data = {
@@ -264,12 +301,12 @@ Page({
     };
     
     // 如果是回复评论
-    if (this.data.replyToComment) {
+    if (this.data.replyToComment && this.data.replyToComment !== '') {
       data.parentId = this.data.replyToComment;
     }
     
     wx.request({
-      url: app.globalData.apiBaseUrl + '/api/dating/moments/' + this.data.momentId + '/comments',
+      url: app.globalData.apiBaseUrl + '/moments/' + this.data.momentId + '/comments',
       method: 'POST',
       header: {
         'Authorization': 'Bearer ' + wx.getStorageSync('token'),
@@ -279,7 +316,7 @@ Page({
       success: res => {
         wx.hideLoading();
         
-        if (res.data.success) {
+        if (res.data.code === "200") {
           wx.showToast({
             title: '评论成功',
             icon: 'success'
@@ -287,8 +324,8 @@ Page({
           
           this.setData({
             commentContent: '',
-            replyToComment: null,
-            replyTo: null,
+            replyToComment: '',
+            replyTo: '',
             showEmojiPicker: false
           });
           
@@ -319,8 +356,8 @@ Page({
         
         this.setData({
           commentContent: '',
-          replyToComment: null,
-          replyTo: null,
+          replyToComment: '',
+          replyTo: '',
           showEmojiPicker: false
         });
         
@@ -336,7 +373,7 @@ Page({
           likeCount: 0
         };
         
-        if (this.data.replyToComment) {
+        if (this.data.replyToComment && this.data.replyToComment !== '') {
           const replyComment = this.data.comments.find(c => c.commentId === this.data.replyToComment);
           if (replyComment) {
             newComment.parentId = this.data.replyToComment;
@@ -360,6 +397,14 @@ Page({
   deleteComment: function(e) {
     const commentId = e.currentTarget.dataset.id
     
+    if (!commentId) {
+      wx.showToast({
+        title: '评论ID不能为空',
+        icon: 'none'
+      })
+      return
+    }
+    
     wx.showModal({
       title: '提示',
       content: '确定要删除这条评论吗？',
@@ -370,15 +415,15 @@ Page({
           })
           
           wx.request({
-            url: app.globalData.apiBaseUrl + '/api/dating/moments/comments/' + commentId + '/delete',
-            method: 'POST',
+            url: app.globalData.apiBaseUrl + '/moments/comments/' + commentId,
+            method: 'DELETE',
             header: {
               'Authorization': 'Bearer ' + wx.getStorageSync('token')
             },
             success: res => {
               wx.hideLoading()
               
-              if (res.data.success) {
+              if (res.data.code === "200") {
                 wx.showToast({
                   title: '删除成功',
                   icon: 'success'
