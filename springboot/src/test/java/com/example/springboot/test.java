@@ -6,7 +6,7 @@ package com.example.springboot;/**
  */
 
 
-import com.example.springboot.service.IUserService;
+import com.example.springboot.service.IUserProfileService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -23,9 +23,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/user")
 public class test {
 
-    //这里引入的是User对象具体的实现接口对象
+    //这里引入的是UserProfile对象具体的实现接口对象
     @Autowired
-    private IUserService userService;
+    private IUserProfileService userService;
 
     @Test
     public void testAddition () {

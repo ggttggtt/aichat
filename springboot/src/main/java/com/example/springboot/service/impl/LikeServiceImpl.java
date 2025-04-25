@@ -1,5 +1,6 @@
 package com.example.springboot.service.impl;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.springboot.entity.Like;
 import com.example.springboot.entity.UserProfile;
 import com.example.springboot.mapper.LikeMapper;
@@ -17,7 +18,7 @@ import java.util.List;
  * 用户喜欢关系服务实现类
  */
 @Service
-public class LikeServiceImpl implements LikeService {
+public class LikeServiceImpl extends ServiceImpl<LikeMapper, Like> implements LikeService {
 
     @Autowired
     private LikeMapper likeMapper;
@@ -27,57 +28,19 @@ public class LikeServiceImpl implements LikeService {
 
     @Override
     @Transactional
-    public boolean likeOrDislike(Integer userId, Integer likedUserId, Integer type) {
+    public boolean addLike(Integer userId, Integer likedUserId, Integer type) {
+        // 检查参数
         if (userId == null || likedUserId == null || type == null) {
             return false;
         }
         
-        Like existingLike = likeMapper.selectByUserIdAndLikedUserId(userId, likedUserId);
-        
-        if (existingLike == null) {
-            // 不存在记录，插入新记录
-            Like like = new Like();
-            like.setUserId(userId);
-            like.setLikedUserId(likedUserId);
-            like.setType(type);
-            return likeMapper.insert(like) > 0;
-        } else {
-            // 更新已有记录
-            existingLike.setType(type);
-            return likeMapper.update(existingLike) > 0;
-        }
-    }
-
-    @Override
-    public Like getLikeStatus(Integer userId, Integer likedUserId) {
-        if (userId == null || likedUserId == null) {
-            return null;
-        }
-        return likeMapper.selectByUserIdAndLikedUserId(userId, likedUserId);
-    }
-
-    @Override
-    public List<Integer> getMutualLikeUserIds(Integer userId) {
-        if (userId == null) {
-            return null;
-        }
-        return likeMapper.selectMutualLikeUserIds(userId);
-    }
-    
-    @Override
-    @Transactional
-    public boolean addLike(Integer userId, Integer likedUserId, Integer type) {
-        if (userId == null || likedUserId == null) {
-            return false;
-        }
-        
-        // 检查是否已经喜欢
-        Like existingLike = likeMapper.selectByUserIdAndLikedUserId(userId, likedUserId);
+        // 检查是否已存在该点赞记录
+        Like existingLike = likeMapper.getLike(userId, likedUserId, type);
         if (existingLike != null) {
-            return false; // 已经喜欢过该用户
+            return true; // 已存在点赞记录
         }
         
-        // 创建新的喜欢记录
+        // 创建新点赞记录
         Like like = new Like();
         like.setUserId(userId);
         like.setLikedUserId(likedUserId);
@@ -85,7 +48,107 @@ public class LikeServiceImpl implements LikeService {
         like.setCreateTime(new Date());
         like.setUpdateTime(new Date());
         
+        // 插入数据库
         return likeMapper.insert(like) > 0;
+    }
+
+    @Override
+    @Transactional
+    public boolean unlike(Integer userId, Integer likedUserId, Integer type) {
+        // 检查参数
+        if (userId == null || likedUserId == null || type == null) {
+            return false;
+        }
+        
+        return likeMapper.unlike(userId, likedUserId, type) > 0;
+    }
+
+    @Override
+    public boolean hasLiked(Integer userId, Integer likedUserId, Integer type) {
+        // 检查参数
+        if (userId == null || likedUserId == null || type == null) {
+            return false;
+        }
+        
+        return likeMapper.getLike(userId, likedUserId, type) != null;
+    }
+
+    @Override
+    public List<Integer> getLikedIds(Integer userId, Integer type) {
+        // 检查参数
+        if (userId == null || type == null) {
+            return new ArrayList<>();
+        }
+        
+        return likeMapper.getLikedIdsByUserIdAndType(userId, type);
+    }
+
+    @Override
+    public List<UserProfile> getMutualLikes(Integer userId) {
+        // 检查参数
+        if (userId == null) {
+            return new ArrayList<>();
+        }
+        
+        // 获取当前用户点赞的用户ID列表（type=0表示用户类型）
+        List<Integer> likedUserIds = likeMapper.getLikedIdsByUserIdAndType(userId, 0);
+        if (likedUserIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        // 从这些用户中筛选出也点赞了当前用户的用户
+        List<Integer> mutualLikeUserIds = likeMapper.getLikedByUserIds(userId, likedUserIds);
+        if (mutualLikeUserIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        // 查询这些互相点赞用户的详细信息
+        List<UserProfile> mutualLikeUsers = new ArrayList<>();
+        for (Integer mutualLikeUserId : mutualLikeUserIds) {
+            UserProfile userProfile = userProfileMapper.getById(mutualLikeUserId);
+            if (userProfile != null) {
+                mutualLikeUsers.add(userProfile);
+            }
+        }
+        
+        return mutualLikeUsers;
+    }
+
+    @Override
+    public int countLikes(Integer likedUserId, Integer type) {
+        // 检查参数
+        if (likedUserId == null || type == null) {
+            return 0;
+        }
+        
+        return likeMapper.countLikes(likedUserId, type);
+    }
+
+    @Override
+    @Transactional
+    public boolean likeOrDislike(Integer userId, Integer likedUserId, int type) {
+        if (userId == null || likedUserId == null) {
+            return false;
+        }
+        
+        // 检查是否已存在该记录
+        Like existingLike = likeMapper.getLike(userId, likedUserId, 1); // 查询用户喜欢记录
+        
+        if (existingLike != null) {
+            // 更新现有记录的类型
+            existingLike.setType(type);
+            existingLike.setUpdateTime(new Date());
+            return this.updateById(existingLike);
+        } else {
+            // 创建新记录
+            Like like = new Like();
+            like.setUserId(userId);
+            like.setLikedUserId(likedUserId);
+            like.setType(type);
+            like.setCreateTime(new Date());
+            like.setUpdateTime(new Date());
+            return likeMapper.insert(like) > 0;
+        }
     }
     
     @Override
@@ -95,53 +158,7 @@ public class LikeServiceImpl implements LikeService {
             return false;
         }
         
-        // 检查是否已经喜欢
-        Like existingLike = likeMapper.selectByUserIdAndLikedUserId(userId, likedUserId);
-        if (existingLike == null) {
-            return false; // 未喜欢该用户
-        }
-        
-        // 删除记录（这里假设LikeMapper有delete方法，如果没有需要添加）
-        // 假设删除逻辑是通过update修改type为0
-        existingLike.setType(0);
-        existingLike.setUpdateTime(new Date());
-        return likeMapper.update(existingLike) > 0;
+        // 默认移除用户类型的点赞（type=1表示用户喜欢）
+        return likeMapper.unlike(userId, likedUserId, 1) > 0;
     }
-    
-    @Override
-    public List<UserProfile> getMutualLikes(Integer userId) {
-        if (userId == null) {
-            return new ArrayList<>();
-        }
-        
-        // 获取互相喜欢的用户ID列表
-        List<Integer> mutualUserIds = likeMapper.selectMutualLikeUserIds(userId);
-        
-        // 如果没有互相喜欢的用户，返回空列表
-        if (mutualUserIds == null || mutualUserIds.isEmpty()) {
-            return new ArrayList<>();
-        }
-        
-        // 获取用户详情
-        List<UserProfile> userProfiles = new ArrayList<>();
-        for (Integer mutualUserId : mutualUserIds) {
-            UserProfile profile = userProfileMapper.getById(mutualUserId);
-            if (profile != null) {
-                userProfiles.add(profile);
-            }
-        }
-        
-        return userProfiles;
-    }
-    
-    @Override
-    public Like checkLike(Integer userId, Integer likedUserId) {
-        if (userId == null || likedUserId == null) {
-            return null;
-        }
-        
-        Like like = likeMapper.selectByUserIdAndLikedUserId(userId, likedUserId);
-        // 只有type为1才表示喜欢
-        return (like != null && like.getType() == 1) ? like : null;
-    }
-}
+} 

@@ -20,19 +20,49 @@
                 NOW(), NOW())
     </insert>
 
-    <select id="selectByUserIdAndLikedUserId" resultMap="BaseResultMap">
+    <!-- 根据用户ID和被点赞对象ID以及类型查询点赞记录 -->
+    <select id="getLike" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
         FROM `like`
         WHERE user_id = #{userId,jdbcType=INTEGER}
         AND liked_user_id = #{likedUserId,jdbcType=INTEGER}
+        AND type = #{type,jdbcType=INTEGER}
         LIMIT 1
     </select>
 
-    <select id="selectLikedUserIdsByUserId" resultType="java.lang.Integer">
+    <!-- 获取用户点赞的所有ID -->
+    <select id="getLikedIdsByUserIdAndType" resultType="java.lang.Integer">
         SELECT liked_user_id
         FROM `like`
         WHERE user_id = #{userId} AND type = #{type}
+    </select>
+
+    <!-- 取消点赞 -->
+    <delete id="unlike">
+        DELETE FROM `like`
+        WHERE user_id = #{userId} 
+        AND liked_user_id = #{likedUserId} 
+        AND type = #{type}
+    </delete>
+
+    <!-- 统计对象收到的点赞数 -->
+    <select id="countLikes" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM `like`
+        WHERE liked_user_id = #{likedUserId} AND type = #{type}
+    </select>
+
+    <!-- 从用户列表中筛选出点赞了指定用户的用户ID列表 -->
+    <select id="getLikedByUserIds" resultType="java.lang.Integer">
+        <if test="userIdList != null and userIdList.size() > 0">
+            SELECT user_id FROM `like` 
+            WHERE liked_user_id = #{userId} AND type = 0
+            AND user_id IN
+            <foreach collection="userIdList" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
     </select>
 
     <update id="update" parameterType="com.example.springboot.entity.Like">

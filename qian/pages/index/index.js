@@ -64,27 +64,42 @@ Page({
                 userInfo: e.detail.userInfo
               },
               success: result => {
-                // 保存登录凭证
-                wx.setStorageSync('token', result.data.token || 'mock-token')
-                wx.setStorageSync('userId', result.data.userId || 'mock-userId')
-                
-                this.setData({
-                  isLoggedIn: true
-                })
-                
-                // 隐藏加载提示
-                wx.hideLoading()
-                
-                // 检查是否已完善资料
-                if (result.data.isProfileCompleted) {
-                  // 跳转到发现页
-                  wx.switchTab({
-                    url: '/pages/discover/discover'
+                if (result.data.code === "200") {
+                  const data = result.data.data;
+                  
+                  // 保存登录凭证和用户信息
+                  app.saveLoginInfo(
+                    data.token,
+                    e.detail.userInfo,
+                    data.userId,
+                    data.openid
+                  );
+                  
+                  // 设置页面状态
+                  this.setData({
+                    isLoggedIn: true
                   })
+                  
+                  // 隐藏加载提示
+                  wx.hideLoading()
+                  
+                  // 检查是否已完善资料
+                  if (data.isProfileCompleted) {
+                    // 跳转到发现页
+                    wx.switchTab({
+                      url: '/pages/discover/discover'
+                    })
+                  } else {
+                    // 跳转到完善资料页
+                    wx.redirectTo({
+                      url: '/pages/profile/profile?setup=true'
+                    })
+                  }
                 } else {
-                  // 跳转到完善资料页
-                  wx.redirectTo({
-                    url: '/pages/profile/profile?setup=true'
+                  wx.hideLoading()
+                  wx.showToast({
+                    title: result.data.msg || '登录失败',
+                    icon: 'none'
                   })
                 }
               },

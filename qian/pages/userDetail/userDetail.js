@@ -31,7 +31,7 @@ Page({
         'Authorization': 'Bearer ' + wx.getStorageSync('token')
       },
       success: res => {
-        if (res.data.success) {
+        if (res.data.code == "200") {
           this.setData({
             userDetail: res.data.data,
             loading: false
@@ -116,7 +116,7 @@ Page({
         targetUserId: userId
       },
       success: res => {
-        if (res.data.success) {
+        if (res.data.code == "200") {
           if (res.data.isMatch) {
             wx.showToast({
               title: '匹配成功！',
@@ -175,7 +175,7 @@ Page({
         targetUserId: userId
       },
       success: res => {
-        if (res.data.success) {
+        if (res.data.code == "200") {
           wx.showToast({
             title: '已忽略',
             icon: 'success'

@@ -233,10 +233,10 @@ Page({
     
     // 发送喜欢请求到服务器
     wx.request({
-      url: app.globalData.apiBaseUrl + '/api/like/action?userId=' + currentUserId + '&likedUserId=' + profileId + '&type=1',
+      url: app.globalData.apiBaseUrl + '/likes?userId=' + currentUserId + '&likedUserId=' + profileId + '&type=1',
       method: 'POST',
       header: {
-        'Authorization': 'Bearer ' + wx.getStorageSync('token'),
+        'Authorization': 'Bearer ' + (app.globalData.token || wx.getStorageSync('token')),
         'Content-Type': 'application/x-www-form-urlencoded'
       },
       success: res => {
@@ -272,10 +272,10 @@ Page({
     
     // 发送不喜欢请求到服务器
     wx.request({
-      url: app.globalData.apiBaseUrl + '/api/like/action?userId=' + currentUserId + '&likedUserId=' + profileId + '&type=0',
+      url: app.globalData.apiBaseUrl + '/likes?userId=' + currentUserId + '&likedUserId=' + profileId + '&type=0',
       method: 'POST',
       header: {
-        'Authorization': 'Bearer ' + wx.getStorageSync('token'),
+        'Authorization': 'Bearer ' + (app.globalData.token || wx.getStorageSync('token')),
         'Content-Type': 'application/x-www-form-urlencoded'
       },
       success: res => {

@@ -2,27 +2,44 @@ package com.example.springboot.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.example.springboot.controller.dto.UserDTO;
-import com.example.springboot.entity.User;
 import com.example.springboot.entity.UserProfile;
 import com.example.springboot.entity.UserMatch;
 
 import java.util.List;
 
 /**
- * @Auther: 代刘斌
- * @Date: 2023/6/6 - 06 - 06 - 22:27
- * @Description: com.example.springboot.service
- * @version: 1.0
+ * <p>
+ * 用户资料表 服务类
+ * </p>
+ *
+ * @author ZXL
+ * @since 2025-04-25
  */
+public interface IUserProfileService extends IService<UserProfile> {
 
-public interface IUserService extends IService<User> {
+    /**
+     * 用户登录
+     * @param username 用户名
+     * @param password 密码
+     * @return 登录成功的用户信息，包含token
+     */
+    UserProfile login(String username, String password);
 
-    UserDTO login(UserDTO userDTO);
+    /**
+     * 用户注册
+     * @param userProfile 注册参数
+     * @return 注册成功的用户信息
+     */
+    UserProfile register(UserProfile userProfile);
 
-    User register(UserDTO userDTO);
-
-    Page<User> findPage(Page<User> objectPage, String username, String email, String address);
+    /**
+     * 分页查询用户
+     * @param page 分页对象
+     * @param username 用户名
+     * @param address 地址
+     * @return 分页结果
+     */
+    Page<UserProfile> findPage(Page<UserProfile> page, String username, String address);
 
     /**
      * 获取推荐用户列表

@@ -1,0 +1,33 @@
+/**
+ * 日期格式化工具
+ * 可以将时间戳或日期字符串格式化为指定格式
+ */
+
+// 格式化日期为YYYY-MM-DD格式
+function formatDate(timestamp) {
+  if (!timestamp) return '';
+  
+  // 处理时间戳
+  var date = getDate(timestamp);
+  if (date.toString() === 'Invalid Date') {
+    return '';
+  }
+  
+  // 获取年、月、日
+  var year = date.getFullYear();
+  var month = padZero(date.getMonth() + 1);
+  var day = padZero(date.getDate());
+  
+  // 返回格式化后的日期字符串
+  return year + '-' + month + '-' + day;
+}
+
+// 补零函数
+function padZero(num) {
+  return num < 10 ? '0' + num : '' + num;
+}
+
+// 导出函数
+module.exports = {
+  formatDate: formatDate
+}; 

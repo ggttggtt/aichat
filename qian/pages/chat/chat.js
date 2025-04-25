@@ -130,7 +130,7 @@ Page({
         matchId: this.data.matchId
       },
       success: res => {
-        if (res.data.success) {
+        if (res.data.code == "200") {
           this.setData({
             messages: res.data.data
           }, () => {

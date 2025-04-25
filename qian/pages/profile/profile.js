@@ -45,6 +45,32 @@ Page({
     }
   },
 
+  // 格式化时间戳为YYYY-MM-DD格式
+  formatDate: function(timestamp) {
+    if (!timestamp) return '';
+    
+    // 如果是数字（时间戳），转换为日期对象
+    let date;
+    if (typeof timestamp === 'number' || /^\d+$/.test(timestamp)) {
+      date = new Date(parseInt(timestamp));
+    } else {
+      date = new Date(timestamp);
+    }
+    
+    // 检查日期是否有效
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+    
+    // 获取年、月、日
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    
+    // 返回格式化后的日期字符串
+    return `${year}-${month}-${day}`;
+  },
+
   // 加载用户资料
   loadUserProfile: function() {
     wx.request({
@@ -54,18 +80,31 @@ Page({
         'Authorization': 'Bearer ' + wx.getStorageSync('token')
       },
       success: res => {
-        if (res.data.success) {
+        if (res.data.code == "200") {
           const profile = res.data.data
+          
+          // 确保照片数组不为空
+          const photos = profile.photos || [];
+          
+          // 对照片数组去重
+          const uniquePhotos = [...new Set(photos)];
+          
+          // 格式化出生日期（如果是时间戳）
+          let formattedBirthdate = '';
+          if (profile.birthdate) {
+            formattedBirthdate = this.formatDate(profile.birthdate);
+            console.log('原始生日数据:', profile.birthdate, '格式化后:', formattedBirthdate);
+          }
           
           // 设置表单数据
           this.setData({
             form: {
               nickname: profile.nickname,
               gender: profile.gender,
-              birthdate: profile.birthdate,
+              birthdate: formattedBirthdate || '2000-01-01', // 提供一个默认值
               location: profile.location,
               bio: profile.bio,
-              photos: profile.photos || []
+              photos: uniquePhotos
             },
             selectedTags: profile.tags || []
           })
@@ -268,7 +307,7 @@ Page({
       },
       data: submitData,
       success: res => {
-        if (res.data.success) {
+        if (res.data.code == "200") {
           wx.hideLoading()
           wx.showToast({
             title: '保存成功',

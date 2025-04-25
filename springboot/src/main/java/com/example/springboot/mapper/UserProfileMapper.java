@@ -3,11 +3,20 @@ package com.example.springboot.mapper;
 import com.example.springboot.entity.UserProfile;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 import java.util.List;
 
+/**
+ * <p>
+ * 用户资料表 Mapper 接口
+ * </p>
+ *
+ * @author ZXL
+ * @since 2025-04-25
+ */
 @Mapper
-public interface UserProfileMapper {
+public interface UserProfileMapper extends BaseMapper<UserProfile> {
     
     UserProfile getById(Integer id);
     
@@ -33,5 +42,10 @@ public interface UserProfileMapper {
                                          @Param("longitude") Double longitude,
                                          @Param("limit") Integer limit);
     
+    /**
+     * 更新用户最后活跃时间
+     * @param userId 用户ID
+     * @return 影响的行数
+     */
     int updateLastActiveTime(Integer userId);
-} 
+}

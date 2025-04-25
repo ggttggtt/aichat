@@ -3,7 +3,7 @@ package com.example.springboot.controller;
 import com.alibaba.fastjson.JSON;
 import com.example.springboot.common.Result;
 import com.example.springboot.entity.Moment;
-import com.example.springboot.entity.User;
+import com.example.springboot.entity.UserProfile;
 import com.example.springboot.entity.MomentComment;
 import com.example.springboot.service.MomentService;
 import com.example.springboot.service.MomentCommentService;
@@ -43,12 +43,12 @@ public class MomentController {
      * 获取当前用户，如果未登录则返回模拟用户
      * @return 当前用户
      */
-    private User getCurrentUser() {
-        User currentUser = TokenUtils.getCurrentUser();
+    private UserProfile getCurrentUser() {
+        UserProfile currentUser = TokenUtils.getCurrentUser();
         if (currentUser == null) {
             // 开发模式：使用模拟用户
             log.warn("警告: 未登录，使用模拟用户ID=1！");
-            currentUser = new User();
+            currentUser = new UserProfile();
             currentUser.setId(1); // 使用ID为1的模拟用户
         }
         return currentUser;
@@ -128,7 +128,7 @@ public class MomentController {
     public Result getMoment(
             @PathVariable Integer id, 
             @RequestParam(required = false) Integer userId) {
-        
+
         // 如果未提供userId，使用当前用户ID
         if (userId == null) {
             userId = getCurrentUser().getId();
@@ -156,7 +156,7 @@ public class MomentController {
             @RequestParam(required = false) String location,
             @RequestParam(required = false, defaultValue = "0") Integer visibility) {
         // 获取当前登录用户
-        User currentUser = getCurrentUser();
+        UserProfile currentUser = getCurrentUser();
         
         // 创建动态对象
         Moment moment = new Moment();
@@ -236,7 +236,7 @@ public class MomentController {
             @RequestParam(required = false) Integer visibility) {
         
         // 获取当前登录用户
-        User currentUser = getCurrentUser();
+        UserProfile currentUser = getCurrentUser();
         
         Moment moment = new Moment();
         moment.setId(id);
@@ -261,7 +261,7 @@ public class MomentController {
     @DeleteMapping("/{id}")
     public Result deleteMoment(@PathVariable Integer id) {
         // 获取当前登录用户
-        User currentUser = getCurrentUser();
+        UserProfile currentUser = getCurrentUser();
         
         boolean success = momentService.deleteMoment(id, currentUser.getId());
         if (success) {
@@ -279,7 +279,7 @@ public class MomentController {
     @PostMapping("/like/{momentId}")
     public Result likeMoment(@PathVariable Integer momentId) {
         // 获取当前登录用户
-        User currentUser = getCurrentUser();
+        UserProfile currentUser = getCurrentUser();
         
         boolean success = momentService.likeMoment(momentId, currentUser.getId());
         if (success) {
@@ -297,7 +297,7 @@ public class MomentController {
     @PostMapping("/unlike/{momentId}")
     public Result unlikeMoment(@PathVariable Integer momentId) {
         // 获取当前登录用户
-        User currentUser = getCurrentUser();
+        UserProfile currentUser = getCurrentUser();
         
         boolean success = momentService.unlikeMoment(momentId, currentUser.getId());
         if (success) {
@@ -314,7 +314,7 @@ public class MomentController {
     @GetMapping("/profile")
     public Result getUserMomentProfile() {
         // 获取当前登录用户
-        User currentUser = getCurrentUser();
+        UserProfile currentUser = getCurrentUser();
         
         Map<String, Object> profile = new HashMap<>();
         // 这里可以添加用户动态的统计信息，例如：
@@ -348,7 +348,7 @@ public class MomentController {
             @PathVariable Integer momentId,
             @RequestBody Map<String, String> body) {
         // 获取当前登录用户
-        User currentUser = getCurrentUser();
+        UserProfile currentUser = getCurrentUser();
         
         // 获取评论内容
         String content = body.get("content");
@@ -375,7 +375,7 @@ public class MomentController {
     @DeleteMapping("/comments/{commentId}")
     public Result deleteComment(@PathVariable Integer commentId) {
         // 获取当前登录用户
-        User currentUser = getCurrentUser();
+        UserProfile currentUser = getCurrentUser();
         
         // 删除评论
         boolean success = momentCommentService.deleteComment(commentId, currentUser.getId());

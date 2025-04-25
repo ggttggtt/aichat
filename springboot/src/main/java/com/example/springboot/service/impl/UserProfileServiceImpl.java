@@ -2,30 +2,26 @@ package com.example.springboot.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.log.Log;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.springboot.common.Constants;
-import com.example.springboot.controller.dto.UserDTO;
-import com.example.springboot.entity.User;
 import com.example.springboot.entity.UserProfile;
 import com.example.springboot.entity.UserPhoto;
 import com.example.springboot.entity.UserTag;
 import com.example.springboot.entity.ChatMessage;
 import com.example.springboot.entity.UserMatch;
 import com.example.springboot.exception.ServiceException;
-import com.example.springboot.mapper.UserMapper;
 import com.example.springboot.mapper.UserProfileMapper;
 import com.example.springboot.mapper.UserPhotoMapper;
 import com.example.springboot.mapper.UserTagMapper;
 import com.example.springboot.mapper.ChatMessageMapper;
 import com.example.springboot.mapper.UserMatchMapper;
-import com.example.springboot.service.IUserService;
+import com.example.springboot.service.IUserProfileService;
 import com.example.springboot.utils.TokenUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Collections;
@@ -36,19 +32,17 @@ import java.util.Date;
 import java.time.ZoneId;
 
 /**
- * @Auther: 代刘斌
- * @Date: 2023/6/6 - 06 - 06 - 22:33
- * @Description: com.example.springboot.service.imp
- * @version: 1.0
+ * <p>
+ * 用户资料表 服务实现类
+ * </p>
+ *
+ * @author ZXL
+ * @since 2025-04-25
  */
-
 @Service
-public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
+public class UserProfileServiceImpl extends ServiceImpl<UserProfileMapper, UserProfile> implements IUserProfileService {
 
     private static final Log LOG = Log.get();
-
-    @Resource
-    private UserMapper userMapper;
 
     @Autowired
     private UserProfileMapper userProfileMapper;
@@ -66,88 +60,60 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private ChatMessageMapper chatMessageMapper;
 
     @Override
-    public UserDTO login(UserDTO userDTO) {
-        User one = getUserInfo(userDTO);
-        if (one != null) {
-            BeanUtil.copyProperties(one, userDTO, true);
+    public UserProfile login(String username, String password) {
+        LambdaQueryWrapper<UserProfile> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserProfile::getNickname, username);
+        // 不再根据密码查询数据库
+        UserProfile profile = getOne(queryWrapper);
+        
+        if (profile != null) {
+            // 在这里可以添加其他验证逻辑，比如验证openId等
+            // 这里简化处理，假设用户存在就允许登录
+            
             // 设置token
-            String token = TokenUtils.genToken(one.getId().toString(), one.getPassword());
-            userDTO.setToken(token);
-            
-            // 登录成功后，尝试更新用户最后活跃时间
+            String token = TokenUtils.genToken(profile.getId().toString(), profile.getNickname());
+            // 设置token临时值
+            profile.setToken(token);
+
+            // 登录成功后，更新用户最后活跃时间
             try {
-                 UserProfile profile = userProfileMapper.getById(one.getId());
-                 if (profile != null) {
-                     userProfileMapper.updateLastActiveTime(one.getId());
-                 } else {
-                     // 如果 profile 不存在，可能需要创建或记录日志
-                     LOG.warn("用户 {} 登录成功，但未找到对应的 UserProfile 记录", one.getId());
-                 }
+                userProfileMapper.updateLastActiveTime(profile.getId());
             } catch (Exception e) {
-                LOG.error("更新用户 {} 最后活跃时间失败", one.getId(), e);
+                LOG.error("更新用户 {} 最后活跃时间失败", profile.getId(), e);
             }
-            
-            return userDTO;
+
+            return profile;
         } else {
             throw new ServiceException(Constants.CODE_600, "用户名或密码错误");
         }
     }
 
     @Override
-    public User register(UserDTO userDTO) {
-        User one = getUserInfo(userDTO);
-        if (one == null) {
-            one = new User();
-            BeanUtil.copyProperties(userDTO, one, true);
-            // 可以在这里设置默认昵称、头像等
-            if (one.getNickname() == null) {
-                one.setNickname("新用户" + System.currentTimeMillis() % 10000); // 示例默认昵称
-            }
-            save(one);  // 把 copy完之后的用户对象存储到数据库, ID 会自动生成
-
-            // 同时创建关联的 UserProfile 记录 (基础信息)
-             try {
-                UserProfile userProfile = new UserProfile();
-                userProfile.setId(one.getId()); // 使用 User 表新生成的 ID
-                 // 假设 userDTO 包含 openId (需要前端注册时传递)
-                 // userProfile.setOpenId(userDTO.getOpenId()); // TODO: 确保 UserDTO 有 openId 字段并从前端获取
-                 userProfile.setOpenId("temp_openid_" + one.getId()); // 临时 OpenID，需要后续从小程序获取真实 openid 更新
-                 userProfile.setNickname(one.getNickname()); 
-                 userProfile.setAvatarUrl(one.getAvatarUrl()); 
-                 userProfile.setIsProfileCompleted(false); // 初始状态为未完善资料
-                 userProfileMapper.insert(userProfile);
-             } catch (Exception e) {
-                 // 处理创建 Profile 失败的情况，可能需要回滚 User 创建或记录错误
-                 LOG.error("为新用户 {} 创建 UserProfile 失败", one.getId(), e);
-                 // 根据业务决定是否抛出异常或返回错误
-                 // throw new ServiceException(Constants.CODE_500, "创建用户附加信息失败");
-             }
-
-        } else {
-            throw new ServiceException(Constants.CODE_600, "用户名已存在");
+    public UserProfile register(UserProfile userProfile) {
+        LambdaQueryWrapper<UserProfile> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserProfile::getNickname, userProfile.getNickname());
+        UserProfile existingProfile = getOne(queryWrapper);
+        
+        if (existingProfile != null) {
+            throw new ServiceException(Constants.CODE_600, "用户已存在");
         }
-        return one;
+        
+        // 不将密码存入数据库
+        // 如果需要存储密码，应该创建一个单独的用户认证表
+        
+        // 保存用户
+        save(userProfile);
+        return userProfile;
     }
 
     @Override
-    public Page<User> findPage(Page<User> page, String username, String email, String address) {
-        return userMapper.findPage(page, username, email, address);
+    public Page<UserProfile> findPage(Page<UserProfile> page, String username, String address) {
+        LambdaQueryWrapper<UserProfile> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.like(username != null, UserProfile::getNickname, username)
+                   .like(address != null, UserProfile::getLocation, address);
+        return page(page, queryWrapper);
     }
 
-    private User getUserInfo(UserDTO userDTO) {
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("username", userDTO.getUsername());
-        queryWrapper.eq("password", userDTO.getPassword());
-        User one;
-        try {
-            one = getOne(queryWrapper); // 从数据库查询用户信息
-        } catch (Exception e) {
-            LOG.error(e);
-            throw new ServiceException(Constants.CODE_500, "系统错误");
-        }
-        return one;
-    }
-    
     /**
      * 实现获取推荐用户列表逻辑
      */

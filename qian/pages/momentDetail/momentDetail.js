@@ -53,7 +53,7 @@ Page({
       success: res => {
         wx.hideLoading()
         
-        if (res.data.success) {
+        if (res.data.code == "200") {
           const moment = res.data.data
           
           // 处理图片

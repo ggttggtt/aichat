@@ -1,3 +1,5 @@
+<wxs src="./date-format.wxs" module="dateFormat" />
+
 <view class="profile-container">
   <view class="header">
     <text class="title" wx:if="{{isSetup}}">完善个人资料</text>
@@ -62,7 +64,15 @@
     
     <view class="form-item">
       <view class="form-label">出生日期</view>
-      <view class="form-content" wx:if="{{!isEditing}}">{{form.birthdate}}</view>
+      <view class="form-content" wx:if="{{!isEditing}}">
+        <!-- 首先尝试使用WXS格式化，如果失败则直接显示JS中已经格式化好的日期 -->
+        <block wx:if="{{dateFormat.formatDate(form.birthdate) !== ''}}">
+          {{dateFormat.formatDate(form.birthdate)}}
+        </block>
+        <block wx:else>
+          {{form.birthdate}}
+        </block>
+      </view>
       <picker 
         mode="date" 
         value="{{form.birthdate}}" 

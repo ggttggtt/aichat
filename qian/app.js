@@ -2,6 +2,8 @@ App({
   globalData: {
     userInfo: null,
     token: null,
+    userId: null,
+    openid: null,
     apiBaseUrl: 'http://localhost:8888',
     userLocation: null,
     likedProfiles: [],
@@ -51,22 +53,30 @@ App({
   },
   
   // 保存登录信息
-  saveLoginInfo: function(token, userInfo) {
+  saveLoginInfo: function(token, userInfo, userId, openid) {
     this.globalData.token = token
     this.globalData.userInfo = userInfo
+    this.globalData.userId = userId
+    this.globalData.openid = openid
     
     // 保存到本地存储
     wx.setStorageSync('token', token)
     wx.setStorageSync('userInfo', userInfo)
+    wx.setStorageSync('userId', userId)
+    wx.setStorageSync('openid', openid)
   },
   
   // 清除登录信息
   clearLoginInfo: function() {
     this.globalData.token = null
     this.globalData.userInfo = null
+    this.globalData.userId = null
+    this.globalData.openid = null
     
     // 清除本地存储
     wx.removeStorageSync('token')
     wx.removeStorageSync('userInfo')
+    wx.removeStorageSync('userId')
+    wx.removeStorageSync('openid')
   }
 }) 
